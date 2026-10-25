@@ -2,406 +2,184 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Мой Банк</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
   :root {
-    --bg-body: #1a1a2e;
-    --bg-phone: #f5f6fa;
-    --bg-card: #ffffff;
-    --bg-icon: #eeecff;
-    --bg-icon-hover: #ddd8ff;
-    --bg-tx-icon: #f0f0f5;
-    --text-main: #1a1a2e;
-    --text-muted: #999;
-    --text-secondary: #555;
-    --accent: #6c5ce7;
-    --accent-soft: rgba(108, 92, 231, 0.12);
-    --green: #00b894;
-    --red: #ff4757;
-    --border: #eee;
-    --nav-bg: #ffffff;
+    --bg-body: #1a1a2e; --bg-phone: #f5f6fa; --bg-card: #ffffff;
+    --bg-icon: #eeecff; --bg-icon-hover: #ddd8ff; --bg-tx-icon: #f0f0f5;
+    --text-main: #1a1a2e; --text-muted: #999; --text-secondary: #555;
+    --accent: #6c5ce7; --accent-soft: rgba(108, 92, 231, 0.12);
+    --green: #00b894; --red: #ff4757; --border: #eee; --nav-bg: #ffffff;
     --header-gradient: linear-gradient(135deg, #6c5ce7, #a29bfe);
     --card-gradient: linear-gradient(135deg, #2d3436, #636e72);
-    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
-    --shadow-md: 0 8px 20px rgba(0,0,0,0.08);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04); --shadow-md: 0 8px 20px rgba(0,0,0,0.08);
+    --nav-h: 74px;
   }
   [data-theme="dark"] {
-    --bg-phone: #12121c;
-    --bg-card: #1e1e2e;
-    --bg-icon: #2a2a40;
-    --bg-icon-hover: #35355a;
-    --bg-tx-icon: #2a2a3e;
-    --text-main: #eaeaf0;
-    --text-muted: #7a7a8c;
-    --text-secondary: #b0b0c0;
-    --accent: #8b7eff;
-    --accent-soft: rgba(139, 126, 255, 0.15);
-    --border: #2a2a3e;
-    --nav-bg: #1a1a28;
+    --bg-phone: #12121c; --bg-card: #1e1e2e; --bg-icon: #2a2a40; --bg-icon-hover: #35355a;
+    --bg-tx-icon: #2a2a3e; --text-main: #eaeaf0; --text-muted: #7a7a8c; --text-secondary: #b0b0c0;
+    --accent: #8b7eff; --accent-soft: rgba(139, 126, 255, 0.15); --border: #2a2a3e; --nav-bg: #1a1a28;
     --header-gradient: linear-gradient(135deg, #4a3fc9, #6c5ce7);
     --card-gradient: linear-gradient(135deg, #1a1a2a, #2d2d44);
-    --shadow-sm: 0 2px 8px rgba(0,0,0,0.25);
-    --shadow-md: 0 8px 20px rgba(0,0,0,0.4);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.25); --shadow-md: 0 8px 20px rgba(0,0,0,0.4);
   }
-
   * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
-  html, body { transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-  body {
-    background: var(--bg-body); display: flex; justify-content: center;
-    min-height: 100vh;
-  }
-  .phone {
-    width: 390px; height: 844px; background: var(--bg-phone);
-    border-radius: 40px; overflow: hidden; position: relative;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5); margin: 20px;
-    display: flex; flex-direction: column;
-    transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  /* ===== Экраны с плавными переходами ===== */
-  .screen {
-    position: absolute; inset: 0; bottom: 74px;
-    overflow-y: auto; overflow-x: hidden;
-    display: flex; flex-direction: column;
-    opacity: 0; visibility: hidden;
-    transform: translateX(30px) scale(0.98);
-    transition:
-      opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-      transform 0.35s cubic-bezier(0.34, 1.15, 0.64, 1),
-      visibility 0s linear 0.35s;
-    will-change: transform, opacity;
-  }
+  html, body { height: 100%; overflow: hidden; }
+  body { background: var(--bg-body); display: flex; justify-content: center; align-items: center; transition: background 0.4s; }
+  .phone { width: 100%; max-width: 390px; height: 100dvh; background: var(--bg-phone); overflow: hidden; position: relative; display: flex; flex-direction: column; transition: background 0.4s; }
+  @media (min-width: 500px) and (min-height: 900px) { .phone { max-width: 390px; height: 844px; border-radius: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); } }
+  .screen { position: absolute; top: 0; left: 0; right: 0; bottom: var(--nav-h); overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; opacity: 0; visibility: hidden; transform: translateX(30px) scale(0.98); transition: opacity 0.35s, transform 0.35s, visibility 0s linear 0.35s; will-change: transform, opacity; padding-bottom: 16px; }
   .screen::-webkit-scrollbar { width: 0; }
-  .screen.active {
-    opacity: 1; visibility: visible;
-    transform: translateX(0) scale(1);
-    transition:
-      opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-      transform 0.4s cubic-bezier(0.34, 1.15, 0.64, 1),
-      visibility 0s;
-    z-index: 2;
-  }
+  .screen.active { opacity: 1; visibility: visible; transform: translateX(0) scale(1); transition: opacity 0.35s, transform 0.4s cubic-bezier(0.34, 1.15, 0.64, 1), visibility 0s; z-index: 2; }
   .screen.exit-left { transform: translateX(-30px) scale(0.98); }
   .screen.exit-right { transform: translateX(30px) scale(0.98); }
-
-  /* стаггер для карточек при входе */
-  .screen.active .stagger > * {
-    animation: slideUp 0.45s cubic-bezier(0.34, 1.15, 0.64, 1) backwards;
-  }
-  .screen.active .stagger > *:nth-child(1) { animation-delay: 0.02s; }
-  .screen.active .stagger > *:nth-child(2) { animation-delay: 0.05s; }
-  .screen.active .stagger > *:nth-child(3) { animation-delay: 0.08s; }
-  .screen.active .stagger > *:nth-child(4) { animation-delay: 0.11s; }
-  .screen.active .stagger > *:nth-child(5) { animation-delay: 0.14s; }
-  .screen.active .stagger > *:nth-child(6) { animation-delay: 0.17s; }
-  .screen.active .stagger > *:nth-child(7) { animation-delay: 0.20s; }
-  .screen.active .stagger > *:nth-child(8) { animation-delay: 0.23s; }
-  .screen.active .stagger > *:nth-child(n+9) { animation-delay: 0.26s; }
-
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(14px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* ===== Шапка ===== */
-  .header {
-    background: var(--header-gradient);
-    color: white; padding: 50px 24px 24px; border-radius: 0 0 30px 30px;
-    transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    flex-shrink: 0;
-  }
+  .screen.active .stagger > * { animation: slideUp 0.45s cubic-bezier(0.34, 1.15, 0.64, 1) backwards; }
+  .screen.active .stagger > *:nth-child(1) { animation-delay: 0.02s; } .screen.active .stagger > *:nth-child(2) { animation-delay: 0.05s; } .screen.active .stagger > *:nth-child(3) { animation-delay: 0.08s; } .screen.active .stagger > *:nth-child(4) { animation-delay: 0.11s; } .screen.active .stagger > *:nth-child(5) { animation-delay: 0.14s; } .screen.active .stagger > *:nth-child(6) { animation-delay: 0.17s; } .screen.active .stagger > *:nth-child(n+7) { animation-delay: 0.20s; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  .header { background: var(--header-gradient); color: white; padding: 50px 24px 24px; border-radius: 0 0 30px 30px; transition: background 0.4s; flex-shrink: 0; }
   .header.compact { padding-bottom: 20px; }
   .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
   .header.compact .header-top { margin-bottom: 8px; }
-  .avatar {
-    width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.25);
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 600; font-size: 14px; letter-spacing: 0.5px;
-  }
-  .bell {
-    width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,0.15);
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
-    position: relative; transition: background 0.2s;
-  }
-  .bell:hover { background: rgba(255,255,255,0.25); }
-  .bell::after {
-    content: ''; position: absolute; top: 9px; right: 10px;
-    width: 7px; height: 7px; background: var(--red); border-radius: 50%;
-    border: 1.5px solid #8a7cf0;
-  }
-  .back-btn {
-    width: 40px; height: 40px; border-radius: 12px;
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
-    transition: background 0.2s, transform 0.15s;
-  }
-  .back-btn:hover { background: rgba(255,255,255,0.15); }
-  .back-btn:active { transform: scale(0.92); }
+  .avatar { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; }
+  .bell { width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
+  .bell::after { content: ''; position: absolute; top: 9px; right: 10px; width: 7px; height: 7px; background: var(--red); border-radius: 50%; border: 1.5px solid #8a7cf0; }
+  .back-btn { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
   .header-title { font-weight: 600; font-size: 17px; }
   .header-spacer { width: 40px; }
   .balance-label { font-size: 13px; opacity: 0.8; margin-bottom: 6px; }
   .balance { font-size: 34px; font-weight: 700; letter-spacing: -0.5px; }
-  .card-visual {
-    background: var(--card-gradient);
-    border-radius: 16px; padding: 20px; color: white; margin-top: 20px;
-    box-shadow: var(--shadow-md); position: relative; overflow: hidden;
-    transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .card-visual::before {
-    content: ''; position: absolute; top: -40px; right: -40px;
-    width: 140px; height: 140px; border-radius: 50%;
-    background: rgba(255,255,255,0.05);
-  }
-  .card-visual .chip {
-    width: 34px; height: 24px; border-radius: 5px;
-    background: linear-gradient(135deg, #d4af37, #f0e2a0);
-    margin-bottom: 8px; position: relative;
-  }
-  .card-visual .chip::after {
-    content: ''; position: absolute; inset: 5px 8px;
-    border-left: 1px solid rgba(0,0,0,0.2); border-right: 1px solid rgba(0,0,0,0.2);
-  }
+  .card-visual { background: var(--card-gradient); border-radius: 16px; padding: 20px; color: white; margin-top: 20px; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+  .card-visual::before { content: ''; position: absolute; top: -40px; right: -40px; width: 140px; height: 140px; border-radius: 50%; background: rgba(255,255,255,0.05); }
+  .card-visual .chip { width: 34px; height: 24px; border-radius: 5px; background: linear-gradient(135deg, #d4af37, #f0e2a0); margin-bottom: 8px; position: relative; }
+  .card-visual .chip::after { content: ''; position: absolute; inset: 5px 8px; border-left: 1px solid rgba(0,0,0,0.2); border-right: 1px solid rgba(0,0,0,0.2); }
   .card-visual .num { font-size: 17px; letter-spacing: 2px; margin: 14px 0; font-weight: 500; }
-  .card-visual .row { display: flex; justify-content: space-between; font-size: 12px; opacity: 0.9; letter-spacing: 0.5px; }
-
-  /* ===== Быстрые действия ===== */
-  .actions {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
-    padding: 24px 16px; background: var(--bg-card); margin: 16px; border-radius: 20px;
-    transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--shadow-sm);
-  }
+  .card-visual .row { display: flex; justify-content: space-between; font-size: 12px; opacity: 0.9; }
+  .actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 24px 16px; background: var(--bg-card); margin: 16px; border-radius: 20px; box-shadow: var(--shadow-sm); }
   .action { text-align: center; cursor: pointer; }
-  .action .icon {
-    width: 52px; height: 52px; border-radius: 16px; background: var(--bg-icon);
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 6px; transition: background 0.25s, transform 0.2s;
-  }
+  .action .icon { width: 52px; height: 52px; border-radius: 16px; background: var(--bg-icon); display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; transition: background 0.25s, transform 0.2s; }
   .action:hover .icon { background: var(--bg-icon-hover); }
   .action:active .icon { transform: scale(0.92); }
   .action .icon svg { stroke: var(--accent); }
   .action span { font-size: 11px; color: var(--text-secondary); }
-
-  /* ===== Фильтр категорий ===== */
-  .filter-bar {
-    display: flex; gap: 8px; padding: 0 16px 12px;
-    overflow-x: auto; scrollbar-width: none;
-  }
+  .filter-bar { display: flex; gap: 8px; padding: 4px 16px 16px; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; }
   .filter-bar::-webkit-scrollbar { display: none; }
-  .chip {
-    padding: 8px 14px; border-radius: 20px; background: var(--bg-card);
-    color: var(--text-secondary); font-size: 12px; font-weight: 500;
-    white-space: nowrap; cursor: pointer; border: 1.5px solid var(--border);
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0;
-  }
-  .chip:hover { border-color: var(--accent); }
-  .chip.active {
-    background: var(--accent); border-color: var(--accent); color: white;
-    box-shadow: 0 4px 12px var(--accent-soft);
-  }
-
-  /* ===== Транзакции ===== */
-  .section-title {
-    padding: 0 24px; font-weight: 700; font-size: 17px; margin-bottom: 12px;
-    color: var(--text-main);
-    display: flex; justify-content: space-between; align-items: baseline;
-  }
+  .chip-btn { padding: 8px 16px; border-radius: 20px; background: var(--bg-card); color: var(--text-secondary); font-size: 12px; font-weight: 500; white-space: nowrap; cursor: pointer; border: 1.5px solid var(--border); transition: all 0.25s; flex-shrink: 0; display: inline-flex; align-items: center; line-height: 1; }
+  .chip-btn:hover { border-color: var(--accent); }
+  .chip-btn.active { background: var(--accent); border-color: var(--accent); color: white; box-shadow: 0 4px 12px var(--accent-soft); }
+  .section-title { padding: 0 24px; font-weight: 700; font-size: 17px; margin-bottom: 12px; color: var(--text-main); display: flex; justify-content: space-between; align-items: baseline; }
   .section-title .count { font-size: 12px; font-weight: 500; color: var(--text-muted); }
   .transactions { padding: 0 16px; }
-  .empty-state {
-    padding: 40px 24px; text-align: center; color: var(--text-muted);
-    font-size: 13px; line-height: 1.5;
-  }
-  .empty-state .big-icon {
-    width: 64px; height: 64px; margin: 0 auto 16px;
-    background: var(--bg-tx-icon); border-radius: 20px;
-    display: flex; align-items: center; justify-content: center;
-  }
+  .empty-state { padding: 32px 24px 48px; text-align: center; color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+  .empty-state .big-icon { width: 64px; height: 64px; margin: 0 auto 16px; background: var(--bg-tx-icon); border-radius: 20px; display: flex; align-items: center; justify-content: center; }
   .empty-state .big-icon svg { stroke: var(--text-muted); }
-  .tx {
-    background: var(--bg-card); border-radius: 14px; padding: 14px 16px;
-    display: flex; align-items: center; gap: 12px; margin-bottom: 8px;
-    transition: background 0.3s, transform 0.15s;
-    box-shadow: var(--shadow-sm);
-  }
-  .tx:hover { transform: translateY(-1px); }
-  .tx-icon {
-    width: 40px; height: 40px; border-radius: 12px; background: var(--bg-tx-icon);
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  }
+  .tx { background: var(--bg-card); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; box-shadow: var(--shadow-sm); }
+  .tx-icon { width: 40px; height: 40px; border-radius: 12px; background: var(--bg-tx-icon); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .tx-icon svg { stroke: var(--text-secondary); }
   .tx-info { flex: 1; min-width: 0; }
   .tx-info .name { font-size: 14px; font-weight: 500; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tx-info .date { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
   .tx-amount { font-weight: 600; font-size: 14px; color: var(--text-main); white-space: nowrap; }
   .tx-amount.in { color: var(--green); }
-
-  /* ===== Нижняя навигация ===== */
-  .nav {
-    position: absolute; bottom: 0; left: 0; right: 0; background: var(--nav-bg);
-    display: flex; justify-content: space-around; padding: 12px 0 22px;
-    border-top: 1px solid var(--border);
-    transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.4s;
-    z-index: 10;
-  }
-  .nav-item {
-    text-align: center; color: var(--text-muted); font-size: 10px;
-    cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px;
-    transition: color 0.25s; flex: 1; padding: 4px 0; position: relative;
-  }
-  .nav-item svg {
-    stroke: var(--text-muted);
-    transition: stroke 0.25s, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
+  .nav { position: absolute; bottom: 0; left: 0; right: 0; height: var(--nav-h); background: var(--nav-bg); display: flex; justify-content: space-around; align-items: flex-start; padding: 10px 0 env(safe-area-inset-bottom, 18px); border-top: 1px solid var(--border); z-index: 10; }
+  .nav-item { text-align: center; color: var(--text-muted); font-size: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; padding: 4px 0; }
+  .nav-item svg { stroke: var(--text-muted); transition: stroke 0.25s, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
   .nav-item.active { color: var(--accent); }
   .nav-item.active svg { stroke: var(--accent); transform: translateY(-2px) scale(1.1); }
-
-  /* ===== Форма перевода ===== */
   .form-wrap { padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; }
   .field { display: flex; flex-direction: column; gap: 6px; }
   .field label { font-size: 12px; color: var(--text-secondary); font-weight: 500; padding-left: 4px; }
-  .field input {
-    padding: 15px 16px; border-radius: 14px; border: 1.5px solid var(--border);
-    background: var(--bg-card); color: var(--text-main); font-size: 15px;
-    outline: none; transition: border-color 0.25s, background 0.3s, color 0.3s, box-shadow 0.25s;
-    box-shadow: var(--shadow-sm);
-  }
+  .input-row { display: flex; gap: 8px; }
+  .input-row input { flex: 1; }
+  .field input { padding: 15px 16px; border-radius: 14px; border: 1.5px solid var(--border); background: var(--bg-card); color: var(--text-main); font-size: 15px; outline: none; transition: border-color 0.25s, background 0.3s, color 0.3s, box-shadow 0.25s; box-shadow: var(--shadow-sm); width: 100%; }
   .field input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
   .field input.error { border-color: var(--red); }
-  .field input.error:focus { box-shadow: 0 0 0 4px rgba(255,71,87,0.12); }
-  .field .err-msg { font-size: 11px; color: var(--red); min-height: 14px; padding-left: 4px; transition: opacity 0.2s; }
-  .btn {
-    padding: 16px; border-radius: 14px; border: none; cursor: pointer;
-    background: var(--accent); color: white; font-size: 15px; font-weight: 600;
-    transition: opacity 0.2s, transform 0.12s, box-shadow 0.25s;
-    box-shadow: 0 6px 16px var(--accent-soft);
-  }
-  .btn:hover { opacity: 0.92; box-shadow: 0 8px 22px var(--accent-soft); }
-  .btn:active { transform: scale(0.97); }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
-  .btn.ghost {
-    background: var(--bg-card); color: var(--text-main);
-    border: 1.5px solid var(--border); box-shadow: var(--shadow-sm);
-  }
+  .field .err-msg { font-size: 11px; color: var(--red); min-height: 14px; padding-left: 4px; }
+  .icon-btn { width: 52px; border-radius: 14px; border: 1.5px solid var(--border); background: var(--bg-card); color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; box-shadow: var(--shadow-sm); flex-shrink: 0; }
+  .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .icon-btn:active { transform: scale(0.95); }
+  .btn { padding: 16px; border-radius: 14px; border: none; cursor: pointer; background: var(--accent); color: white; font-size: 15px; font-weight: 600; transition: opacity 0.2s, transform 0.12s, box-shadow 0.25s; box-shadow: 0 6px 16px var(--accent-soft); }
+  .btn:hover { opacity: 0.92; } .btn:active { transform: scale(0.97); }
+  .btn.ghost { background: var(--bg-card); color: var(--text-main); border: 1.5px solid var(--border); box-shadow: var(--shadow-sm); }
   .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
-
-  /* ===== Банки ===== */
   .bank-list { display: flex; flex-direction: column; gap: 8px; }
-  .bank-item {
-    display: flex; align-items: center; gap: 12px;
-    padding: 14px 16px; border-radius: 14px;
-    background: var(--bg-card); border: 1.5px solid var(--border);
-    cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--shadow-sm);
-  }
+  .bank-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; background: var(--bg-card); border: 1.5px solid var(--border); cursor: pointer; transition: all 0.25s; box-shadow: var(--shadow-sm); }
   .bank-item:hover { border-color: var(--accent); }
-  .bank-item.selected {
-    border-color: var(--accent); background: var(--accent-soft);
-  }
-  .bank-logo {
-    width: 40px; height: 40px; border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 13px; color: white; flex-shrink: 0;
-  }
-  .bank-logo.tbank { background: linear-gradient(135deg, #ffdd2d, #feb700); color: #333; }
-  .bank-logo.sber { background: linear-gradient(135deg, #21a038, #0f8a2e); }
-  .bank-logo.ozon { background: linear-gradient(135deg, #005bff, #0039d6); }
-  .bank-logo.other { background: var(--bg-tx-icon); color: var(--text-secondary); font-size: 18px; }
+  .bank-item.selected { border-color: var(--accent); background: var(--accent-soft); }
+  .bank-logo { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: #fff; overflow: hidden; box-shadow: 0 0 0 1px var(--border); }
+  .bank-logo svg { width: 24px; height: 24px; }
   .bank-info { flex: 1; }
   .bank-info .name { font-size: 14px; font-weight: 600; color: var(--text-main); }
   .bank-info .sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-  .bank-check {
-    width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); flex-shrink: 0;
-  }
-  .bank-item.selected .bank-check {
-    background: var(--accent); border-color: var(--accent);
-    transform: scale(1.05);
-  }
-  .bank-check svg { stroke: white; opacity: 0; transition: opacity 0.2s; }
+  .bank-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; transition: all 0.25s; flex-shrink: 0; }
+  .bank-item.selected .bank-check { background: var(--accent); border-color: var(--accent); transform: scale(1.05); }
+  .bank-check svg { stroke: white; opacity: 0; }
   .bank-item.selected .bank-check svg { opacity: 1; }
-
   .search-wrap { position: relative; }
   .search-wrap input { padding-left: 44px; }
-  .search-wrap .search-ico {
-    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-    pointer-events: none;
-  }
+  .search-wrap .search-ico { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; }
   .search-wrap .search-ico svg { stroke: var(--text-muted); }
-
-  /* ===== Toast ===== */
-  .toast {
-    position: absolute; top: 20px; left: 50%;
-    transform: translateX(-50%) translateY(-120px);
-    background: var(--green); color: white; padding: 12px 24px; border-radius: 12px;
-    font-size: 13px; font-weight: 500; z-index: 100;
-    white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
+  .toast { position: absolute; top: 20px; left: 50%; transform: translateX(-50%) translateY(-120px); background: var(--green); color: white; padding: 12px 24px; border-radius: 12px; font-size: 13px; font-weight: 500; z-index: 100; white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,0.25); transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
   .toast.show { transform: translateX(-50%) translateY(0); }
   .toast.error { background: var(--red); }
-
-  /* ===== График ===== */
-  .chart-wrap {
-    margin: 0 16px; padding: 20px; background: var(--bg-card);
-    border-radius: 20px; transition: background 0.4s;
-    box-shadow: var(--shadow-sm);
-  }
+  .chart-wrap { margin: 0 16px; padding: 20px; background: var(--bg-card); border-radius: 20px; box-shadow: var(--shadow-sm); }
   .chart-wrap canvas { max-height: 260px; }
-  .chart-legend {
-    display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 16px;
-    padding-top: 16px; border-top: 1px solid var(--border);
-  }
+  .chart-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
   .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
   .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
-
-  /* ===== Настройки ===== */
   .settings { padding: 20px 16px; display: flex; flex-direction: column; gap: 10px; }
-  .setting-row {
-    background: var(--bg-card); border-radius: 14px; padding: 16px;
-    display: flex; justify-content: space-between; align-items: center;
-    transition: background 0.3s; box-shadow: var(--shadow-sm);
-  }
+  .setting-row { background: var(--bg-card); border-radius: 14px; padding: 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm); }
   .setting-row .label { font-size: 14px; color: var(--text-main); font-weight: 500; }
   .setting-row .sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-  .switch {
-    position: relative; width: 48px; height: 28px; background: var(--border);
-    border-radius: 14px; cursor: pointer;
-    transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0;
-  }
-  .switch::after {
-    content: ''; position: absolute; top: 3px; left: 3px;
-    width: 22px; height: 22px; border-radius: 50%; background: white;
-    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-  }
+  .switch { position: relative; width: 48px; height: 28px; background: var(--border); border-radius: 14px; cursor: pointer; transition: background 0.3s; flex-shrink: 0; }
+  .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: white; transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
   .switch.on { background: var(--accent); }
   .switch.on::after { transform: translateX(20px); }
-  .danger-btn {
-    padding: 15px; border-radius: 14px; border: 1.5px solid var(--red);
-    background: transparent; color: var(--red); font-size: 14px; font-weight: 600;
-    cursor: pointer; transition: background 0.2s, transform 0.12s;
-  }
+  .danger-btn { padding: 15px; border-radius: 14px; border: 1.5px solid var(--red); background: transparent; color: var(--red); font-size: 14px; font-weight: 600; cursor: pointer; }
   .danger-btn:hover { background: rgba(255,71,87,0.08); }
-  .danger-btn:active { transform: scale(0.98); }
+  .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); z-index: 50; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.active { opacity: 1; visibility: visible; }
+  .modal-sheet { background: var(--bg-card); width: 100%; max-width: 320px; border-radius: 20px; padding: 24px; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+  .modal-overlay.active .modal-sheet { transform: scale(1); }
+  .modal-title { font-size: 17px; font-weight: 700; color: var(--text-main); margin-bottom: 16px; }
+  .modal-sheet input { width: 100%; padding: 14px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--bg-phone); color: var(--text-main); font-size: 15px; outline: none; margin-bottom: 16px; transition: border-color 0.2s; }
+  .modal-sheet input:focus { border-color: var(--accent); }
+  .modal-actions { display: flex; gap: 10px; }
+  .modal-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .modal-btn.cancel { background: var(--bg-icon); color: var(--text-secondary); }
+  .modal-btn.save { background: var(--accent); color: white; }
+  .modal-btn:active { transform: scale(0.97); }
+  
+  /* Профиль */
+  .profile-info { background: var(--bg-card); border-radius: 20px; padding: 20px; margin: 16px; box-shadow: var(--shadow-sm); }
+  .profile-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .profile-row:last-child { border-bottom: none; }
+  .profile-label { font-size: 13px; color: var(--text-secondary); }
+  .profile-value { font-size: 14px; font-weight: 600; color: var(--text-main); }
 </style>
 </head>
 <body>
 <div class="phone" id="phone">
   <div class="toast" id="toast"></div>
 
-  <!-- ===== ГЛАВНАЯ ===== -->
+  <div class="modal-overlay" id="nameModal" onclick="closeNameModal(event)">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-title">Имя получателя</div>
+      <input type="text" id="recipientNameInput" placeholder="Владимир С." maxlength="40">
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closeNameModal()">Отмена</button>
+        <button class="modal-btn save" onclick="saveRecipientName()">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
   <div class="screen active" id="screen-home">
     <div class="header">
       <div class="header-top">
-        <div class="avatar">ИИ</div>
+        <div class="avatar" id="myAvatar">Я</div>
         <div class="bell">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-          </svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         </div>
       </div>
       <div class="balance-label">Общий баланс</div>
@@ -409,126 +187,69 @@
       <div class="card-visual">
         <div class="chip"></div>
         <div class="num">2200 •••• •••• 1604</div>
-        <div class="row"><span>SAKEVICH VLADIMIR</span><span>09/28</span></div>
+        <div class="row"><span id="cardHolder">SAKEVICH VLADIMIR</span><span>09/28</span></div>
       </div>
     </div>
-
     <div class="actions">
-      <div class="action" onclick="goTo('transfer')">
-        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div>
-        <span>Перевод</span>
-      </div>
-      <div class="action" onclick="goTo('chart')">
-        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
-        <span>Платежи</span>
-      </div>
-      <div class="action">
-        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
-        <span>Связь</span>
-      </div>
-      <div class="action" onclick="goTo('settings')">
-        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
-        <span>Ещё</span>
-      </div>
+      <div class="action" onclick="goTo('transfer')"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div><span>Перевод</span></div>
+      <div class="action" onclick="goTo('chart')"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><span>Платежи</span></div>
+      <div class="action"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div><span>Связь</span></div>
+      <div class="action" onclick="goTo('settings')"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div><span>Ещё</span></div>
     </div>
-
-    <div class="section-title">
-      <span>История операций</span>
-      <span class="count" id="txCount"></span>
-    </div>
+    <div class="section-title"><span>История операций</span><span class="count" id="txCount"></span></div>
     <div class="filter-bar" id="filterBar"></div>
     <div class="transactions stagger" id="txList"></div>
   </div>
 
-  <!-- ===== ПЕРЕВОД ===== -->
   <div class="screen" id="screen-transfer">
     <div class="header compact">
       <div class="header-top">
-        <div class="back-btn" onclick="goTo('home')">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        </div>
+        <div class="back-btn" onclick="goTo('home')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></div>
         <div class="header-title">Перевод</div>
         <div class="header-spacer"></div>
       </div>
     </div>
-
     <div class="form-wrap">
       <div class="field">
         <label>Номер телефона получателя</label>
-        <input type="tel" id="phoneInput" placeholder="+7 (___) ___-__-__" maxlength="18" inputmode="numeric">
+        <div class="input-row">
+          <input type="tel" id="phoneInput" placeholder="+7 (___) ___-__-__" maxlength="18" inputmode="numeric">
+          <button class="icon-btn" type="button" onclick="openNameModal()" title="Указать имя получателя">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          </button>
+        </div>
         <div class="err-msg" id="phoneErr"></div>
       </div>
-
       <div class="field">
         <label>Сумма (₽)</label>
         <input type="text" id="amountInput" placeholder="0" inputmode="numeric">
         <div class="err-msg" id="amountErr"></div>
       </div>
-
       <div class="field">
         <label>Банк получателя</label>
-        <div class="bank-list" id="bankList">
-          <div class="bank-item" data-bank="tbank" onclick="selectBank('tbank')">
-            <div class="bank-logo tbank">Т</div>
-            <div class="bank-info">
-              <div class="name">Т-Банк</div>
-              <div class="sub">Быстрый перевод по СБП</div>
-            </div>
-            <div class="bank-check">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-          </div>
-          <div class="bank-item" data-bank="sber" onclick="selectBank('sber')">
-            <div class="bank-logo sber">С</div>
-            <div class="bank-info">
-              <div class="name">СберБанк</div>
-              <div class="sub">Перевод по СБП</div>
-            </div>
-            <div class="bank-check">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-          </div>
-          <div class="bank-item" data-bank="ozon" onclick="selectBank('ozon')">
-            <div class="bank-logo ozon">О</div>
-            <div class="bank-info">
-              <div class="name">Озон Банк</div>
-              <div class="sub">Перевод по СБП</div>
-            </div>
-            <div class="bank-check">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-          </div>
-        </div>
+        <div class="bank-list" id="bankList"></div>
         <div class="err-msg" id="bankErr"></div>
       </div>
-
       <div class="field">
         <label>Поиск другого банка</label>
         <div class="search-wrap">
-          <span class="search-ico">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          </span>
+          <span class="search-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
           <input type="text" id="bankSearch" placeholder="Введите название банка">
         </div>
         <div class="bank-list" id="bankSearchResults" style="margin-top:8px;"></div>
       </div>
-
       <div class="field">
         <label>Комментарий (необязательно)</label>
         <input type="text" id="commentInput" placeholder="Например: за обед" maxlength="60">
       </div>
-
       <button class="btn" id="transferBtn">Перевести</button>
     </div>
   </div>
 
-  <!-- ===== ГРАФИК ===== -->
   <div class="screen" id="screen-chart">
     <div class="header compact">
       <div class="header-top">
-        <div class="back-btn" onclick="goTo('home')">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        </div>
+        <div class="back-btn" onclick="goTo('home')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></div>
         <div class="header-title">Расходы по категориям</div>
         <div class="header-spacer"></div>
       </div>
@@ -541,129 +262,113 @@
     </div>
   </div>
 
-  <!-- ===== НАСТРОЙКИ ===== -->
   <div class="screen" id="screen-settings">
     <div class="header compact">
       <div class="header-top">
-        <div class="back-btn" onclick="goTo('home')">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        </div>
-        <div class="header-title">Настройки</div>
+        <div class="back-btn" onclick="goTo('home')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></div>
+        <div class="header-title">Профиль</div>
         <div class="header-spacer"></div>
+      </div>
+    </div>
+    <div class="profile-info">
+      <div class="profile-row">
+        <div class="profile-label">Мой номер</div>
+        <div class="profile-value" id="myPhoneEl">—</div>
+      </div>
+      <div class="profile-row">
+        <div class="profile-label">Моё имя</div>
+        <div class="profile-value" id="myNameEl">—</div>
+      </div>
+      <div class="profile-row">
+        <div class="profile-label">Баланс в реестре</div>
+        <div class="profile-value" id="myBalanceRegEl">—</div>
       </div>
     </div>
     <div class="settings stagger">
       <div class="setting-row">
-        <div>
-          <div class="label">Тёмная тема</div>
-          <div class="sub">Комфорт для глаз ночью</div>
-        </div>
+        <div><div class="label">Тёмная тема</div><div class="sub">Комфорт для глаз ночью</div></div>
         <div class="switch" id="themeSwitch" onclick="toggleTheme()"></div>
       </div>
       <div class="setting-row">
-        <div>
-          <div class="label">Баланс</div>
-          <div class="sub" id="balanceSetting">—</div>
-        </div>
-      </div>
-      <div class="setting-row">
-        <div>
-          <div class="label">Данные</div>
-          <div class="sub" id="storageInfo">—</div>
-        </div>
+        <div><div class="label">Данные</div><div class="sub" id="storageInfo">—</div></div>
       </div>
       <button class="btn ghost" onclick="exportData()">Экспорт в JSON</button>
       <button class="danger-btn" onclick="resetData()">Сбросить все данные</button>
     </div>
   </div>
 
-  <!-- ===== НАВИГАЦИЯ ===== -->
   <div class="nav">
-    <div class="nav-item active" data-tab="home" onclick="goTo('home')">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      <span>Главная</span>
-    </div>
-    <div class="nav-item" data-tab="transfer" onclick="goTo('transfer')">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-      <span>Перевод</span>
-    </div>
-    <div class="nav-item" data-tab="chart" onclick="goTo('chart')">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      <span>График</span>
-    </div>
-    <div class="nav-item" data-tab="settings" onclick="goTo('settings')">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      <span>Профиль</span>
-    </div>
+    <div class="nav-item active" data-tab="home" onclick="goTo('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Главная</span></div>
+    <div class="nav-item" data-tab="transfer" onclick="goTo('transfer')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Перевод</span></div>
+    <div class="nav-item" data-tab="chart" onclick="goTo('chart')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>График</span></div>
+    <div class="nav-item" data-tab="settings" onclick="goTo('settings')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Профиль</span></div>
   </div>
 </div>
 
 <script>
 /* ========== ИКОНКИ ========== */
 const ICONS = {
-  cart: '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>',
-  wallet: '<path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>',
-  coffee: '<path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>',
-  film: '<rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/>',
-  car: '<path d="M5 17h14v-5l-2-5H7l-2 5v5z"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/>',
-  home: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
-  heart: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
   send: '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
   inbox: '<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
 };
 
-/* ========== ДАННЫЕ ========== */
-const DEFAULT_DATA = {
-  balance: 124580,
-  transactions: [], // ИСТОРИЯ ПОЛНОСТЬЮ ОЧИЩЕНА
-  theme: 'light',
-  filter: 'all',
-};
-
-const CATEGORY_COLORS = {
-  'Продукты':     '#6c5ce7',
-  'Кафе':         '#fd79a8',
-  'Развлечения':  '#fdcb6e',
-  'Транспорт':    '#0984e3',
-  'Здоровье':     '#00b894',
-  'Жильё':        '#e17055',
-  'Доход':        '#00cec9',
-  'Другое':       '#a29bfe',
-};
-
+/* ========== ДАННЫЕ БАНКОВ ========== */
 const BANKS = {
-  tbank: { name: 'Т-Банк',    logo: 'tbank', short: 'Т' },
-  sber:  { name: 'СберБанк',  logo: 'sber',  short: 'С' },
-  ozon:  { name: 'Озон Банк', logo: 'ozon',  short: 'О' },
+  tbank: { name: 'Т-Банк', logo: `<svg viewBox="0 0 24 24"><path d="M7 4h10v16H7z" fill="#FFDD2D"/><path d="M7 4h10v5H7z" fill="#333"/><path d="M10 12h4v4h-4z" fill="#333"/></svg>` },
+  sber:  { name: 'СберБанк', logo: `<svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 3a5 5 0 1 1 0 10 5 5 0 0 1 0-10z" fill="#21A038"/><path d="M10 6h4v2h-4zM10 16h4v2h-4z" fill="#fff"/></svg>` },
+  ozon:  { name: 'Озон Банк', logo: `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z" fill="#005BFF"/><circle cx="12" cy="12" r="3" fill="#005BFF"/></svg>` }
 };
-
 const OTHER_BANKS = [
-  { id: 'alfa',   name: 'Альфа-Банк',     short: 'А', color: '#ef3124' },
-  { id: 'vtb',    name: 'ВТБ',            short: 'В', color: '#009fdf' },
-  { id: 'raif',   name: 'Райффайзен',     short: 'Р', color: '#ffd900' },
-  { id: 'gazprom',name: 'Газпромбанк',    short: 'Г', color: '#0066b3' },
-  { id: 'rossel', name: 'Россельхозбанк', short: 'Р', color: '#00843d' },
-  { id: 'psb',    name: 'ПСБ',            short: 'П', color: '#00488e' },
-  { id: 'sovcom', name: 'Совкомбанк',     short: 'С', color: '#ffd200' },
-  { id: 'mkb',    name: 'МКБ',            short: 'М', color: '#002f6c' },
+  { id: 'alfa',   name: 'Альфа-Банк', logo: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#ef3124"/><path d="M12 6l4 8H8z" fill="#fff"/></svg>` },
+  { id: 'vtb',    name: 'ВТБ',        logo: `<svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2" fill="#009fdf"/><path d="M6 10h12v4H6z" fill="#fff"/></svg>` },
+  { id: 'raif',   name: 'Райффайзен', logo: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#ffd900"/><path d="M9 8h6v2h-6zM9 12h6v2h-6z" fill="#333"/></svg>` },
+  { id: 'gazprom',name: 'Газпромбанк',logo: `<svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="4" fill="#0066b3"/><path d="M8 8h8v2h-8zM8 12h8v2h-8z" fill="#fff"/></svg>` },
+  { id: 'rossel', name: 'Россельхозбанк', logo: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#00843d"/><path d="M12 6l4 6-4 6-4-6z" fill="#fff"/></svg>` },
+  { id: 'psb',    name: 'ПСБ',        logo: `<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="#00488e"/><path d="M8 8h8v8H8z" fill="#fff"/></svg>` },
+  { id: 'sovcom', name: 'Совкомбанк', logo: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#ffd200"/><path d="M8 12h8" stroke="#333" stroke-width="3"/></svg>` },
+  { id: 'mkb',    name: 'МКБ',        logo: `<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3" fill="#002f6c"/><path d="M8 16v-6l4 3 4-3v6" stroke="#fff" fill="none" stroke-width="2"/></svg>` }
 ];
 
+/* ========== РЕЕСТР ИГРОКОВ ========== */
+const USERS_KEY = 'mybank_users_v1';
+const DEFAULT_USERS = {
+  '+79998887766': { name: 'Владимир С.', balance: 124580 },
+  '+79991234567': { name: 'Анна П.',     balance: 54300 },
+  '+79123456789': { name: 'Дмитрий К.',  balance: 87200 },
+  '+79214567890': { name: 'Елена В.',    balance: 19800 },
+  '+79055678901': { name: 'Максим Л.',   balance: 64500 },
+};
+
+/* Кто мы сейчас */
+const MY_PHONE_KEY = 'mybank_my_phone_v1';
+const DEFAULT_MY_PHONE = '+79998887766';
+
 /* ========== ХРАНИЛИЩЕ ========== */
-const STORAGE_KEY = 'mybank_data_v2';
-let state = loadState();
+const STORAGE_KEY = 'mybank_data_v3';
+
+function loadUsers() {
+  try { const raw = localStorage.getItem(USERS_KEY); if (raw) return JSON.parse(raw); } catch (e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_USERS));
+}
+function saveUsers() { localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
+
+let users = loadUsers();
+let myPhone = localStorage.getItem(MY_PHONE_KEY) || DEFAULT_MY_PHONE;
+
+if (!users[myPhone]) users[myPhone] = { name: 'Владимир С.', balance: 0 };
 
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
-  } catch (e) { console.warn(e); }
-  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+  } catch (e) {}
+  return { transactions: [], theme: 'light', filter: 'all' };
 }
-function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 
-/* ========== НАВИГАЦИЯ С АНИМАЦИЕЙ ========== */
+let state = loadState();
+
+/* ========== НАВИГАЦИЯ ========== */
 const TAB_ORDER = ['home', 'transfer', 'chart', 'settings'];
 let currentTab = 'home';
 let isAnimating = false;
@@ -674,127 +379,109 @@ function goTo(tab, direction) {
   const fromIdx = TAB_ORDER.indexOf(currentTab);
   const toIdx = TAB_ORDER.indexOf(tab);
   const dir = direction || (toIdx > fromIdx ? 'forward' : 'backward');
-
   const currentEl = document.getElementById('screen-' + currentTab);
   const nextEl = document.getElementById('screen-' + tab);
-
-  // подготовка следующего экрана
   nextEl.classList.remove('exit-left', 'exit-right');
   nextEl.style.transform = dir === 'forward' ? 'translateX(30px) scale(0.98)' : 'translateX(-30px) scale(0.98)';
   nextEl.style.opacity = '0';
   nextEl.classList.add('active');
-  // force reflow
   void nextEl.offsetWidth;
   nextEl.style.transform = '';
   nextEl.style.opacity = '';
-
-  // уход текущего
   currentEl.classList.remove('active');
   currentEl.classList.add(dir === 'forward' ? 'exit-left' : 'exit-right');
-
-  setTimeout(() => {
-    currentEl.classList.remove('exit-left', 'exit-right');
-    isAnimating = false;
-  }, 380);
-
+  setTimeout(() => { currentEl.classList.remove('exit-left', 'exit-right'); isAnimating = false; }, 380);
   currentTab = tab;
-
-  // синхронизируем навигацию
-  document.querySelectorAll('.nav-item').forEach(n => {
-    n.classList.toggle('active', n.dataset.tab === tab);
-  });
-
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
   if (tab === 'chart') renderChart();
   if (tab === 'settings') updateSettings();
 }
 
-/* ========== SWIPE ========== */
-let touchStartX = 0;
-let touchStartY = 0;
-let touchStartTime = 0;
-
-document.getElementById('phone').addEventListener('touchstart', (e) => {
-  if (e.target.closest('canvas') || e.target.closest('.filter-bar') || e.target.closest('.bank-list')) return;
-  touchStartX = e.touches[0].clientX;
-  touchStartY = e.touches[0].clientY;
-  touchStartTime = Date.now();
-}, { passive: true });
-
-document.getElementById('phone').addEventListener('touchend', (e) => {
-  if (!touchStartX) return;
-  const dx = e.changedTouches[0].clientX - touchStartX;
-  const dy = e.changedTouches[0].clientY - touchStartY;
-  const dt = Date.now() - touchStartTime;
-
-  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && dt < 500) {
-    const idx = TAB_ORDER.indexOf(currentTab);
-    if (dx < 0 && idx < TAB_ORDER.length - 1) goTo(TAB_ORDER[idx + 1], 'forward');
-    else if (dx > 0 && idx > 0) goTo(TAB_ORDER[idx - 1], 'backward');
-  }
-  touchStartX = 0;
-});
-
-/* ========== ОТРИСОВКА ГЛАВНОЙ ========== */
-function renderHome() {
-  document.getElementById('balanceEl').textContent = fmtMoney(state.balance);
-
-  // фильтр-бар
-  const cats = ['all', ...new Set(state.transactions.map(t => t.category))];
-  const filterBar = document.getElementById('filterBar');
-  filterBar.innerHTML = cats.map(c => {
-    const label = c === 'all' ? 'Все' : c;
-    const active = state.filter === c ? 'active' : '';
-    return `<div class="chip ${active}" onclick="setFilter('${c}')">${escapeHtml(label)}</div>`;
-  }).join('');
-
-  // транзакции
-  const filtered = state.filter === 'all'
-    ? state.transactions
-    : state.transactions.filter(t => t.category === state.filter);
-
-  document.getElementById('txCount').textContent = filtered.length
-    ? filtered.length + ' шт.'
-    : '';
-
-  const list = document.getElementById('txList');
-  if (filtered.length === 0) {
-    list.innerHTML = `
-      <div class="empty-state">
-        <div class="big-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS.inbox}</svg>
-        </div>
-        <div style="font-weight:600; color:var(--text-main); margin-bottom:4px;">Пока пусто</div>
-        <div>Здесь появятся ваши операции</div>
-      </div>
-    `;
-    return;
-  }
-  list.innerHTML = filtered.map(tx => `
-    <div class="tx">
-      <div class="tx-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[tx.icon] || ICONS.cart}</svg>
-      </div>
-      <div class="tx-info">
-        <div class="name">${escapeHtml(tx.name)}</div>
-        <div class="date">${escapeHtml(tx.date)}</div>
-      </div>
-      <div class="tx-amount ${tx.amount > 0 ? 'in' : ''}">${tx.amount > 0 ? '+' : ''}${fmtMoney(tx.amount)}</div>
-    </div>
-  `).join('');
-}
-
-function setFilter(cat) {
-  state.filter = cat;
-  saveState();
-  renderHome();
+/* ========== ВРЕМЯ ========== */
+function getFormattedDate() {
+  const d = new Date();
+  const now = d.getTime();
+  const today = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const yesterday = today - 86400000;
+  const timeStr = d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  if (now >= today) return 'Сегодня, ' + timeStr;
+  if (now >= yesterday) return 'Вчера, ' + timeStr;
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }) + ', ' + timeStr;
 }
 
 /* ========== ФОРМАТИРОВАНИЕ ========== */
-function fmtMoney(n) {
-  return new Intl.NumberFormat('ru-RU').format(Math.abs(n)) + ' ₽';
+function fmtMoney(n) { return new Intl.NumberFormat('ru-RU').format(Math.abs(n)) + ' ₽'; }
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function normalizePhone(p) { return (p || '').replace(/\D/g, '').replace(/^8/, '7'); }
+
+/* ========== ГЛАВНАЯ ========== */
+function renderHome() {
+  const me = users[myPhone];
+  document.getElementById('balanceEl').textContent = fmtMoney(me.balance);
+  document.getElementById('myAvatar').textContent = me.name.charAt(0);
+  document.getElementById('cardHolder').textContent = me.name.toUpperCase();
+
+  // История: только мои операции
+  const myTx = state.transactions.filter(t => t.from === myPhone || t.to === myPhone);
+
+  const cats = ['all', ...new Set(myTx.map(t => t.category))];
+  document.getElementById('filterBar').innerHTML = cats.map(c => {
+    const label = c === 'all' ? 'Все' : c;
+    const active = state.filter === c ? 'active' : '';
+    return `<div class="chip-btn ${active}" onclick="setFilter('${c}')">${escapeHtml(label)}</div>`;
+  }).join('');
+
+  const filtered = state.filter === 'all' ? myTx : myTx.filter(t => t.category === state.filter);
+  document.getElementById('txCount').textContent = filtered.length ? filtered.length + ' шт.' : '';
+  const list = document.getElementById('txList');
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="big-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS.inbox}</svg></div><div style="font-weight:600; color:var(--text-main); margin-bottom:4px;">Пока пусто</div><div>Здесь появятся ваши операции</div></div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(tx => {
+    const isIncoming = tx.to === myPhone;
+    // Имя в истории: если входящий — имя отправителя; если исходящий — имя получателя или комментарий
+    let title;
+    if (isIncoming) {
+      title = 'От ' + (users[tx.from]?.name || 'Неизвестный');
+    } else {
+      const recipient = users[tx.to]?.name || tx.meta?.recipient || 'Получатель';
+      title = recipient;
+    }
+    const sign = isIncoming ? '+' : '-';
+    const cls = isIncoming ? 'in' : '';
+    return `
+      <div class="tx">
+        <div class="tx-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS.send}</svg></div>
+        <div class="tx-info">
+          <div class="name">${escapeHtml(title)}</div>
+          <div class="date">${escapeHtml(tx.date)}</div>
+        </div>
+        <div class="tx-amount ${cls}">${sign}${fmtMoney(tx.amount)}</div>
+      </div>
+    `;
+  }).join('');
 }
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function setFilter(cat) { state.filter = cat; saveState(); renderHome(); }
+
+/* ========== МОДАЛКА ИМЕНИ ========== */
+function openNameModal() {
+  const input = document.getElementById('recipientNameInput');
+  input.value = window.customRecipientName || '';
+  document.getElementById('nameModal').classList.add('active');
+  setTimeout(() => input.focus(), 100);
+}
+function closeNameModal(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('nameModal').classList.remove('active');
+}
+function saveRecipientName() {
+  const val = document.getElementById('recipientNameInput').value.trim();
+  window.customRecipientName = val || null;
+  closeNameModal();
+  if (val) showToast('Имя: ' + val);
 }
 
 /* ========== ПЕРЕВОД ========== */
@@ -806,16 +493,24 @@ const phoneErr = document.getElementById('phoneErr');
 const amountErr = document.getElementById('amountErr');
 const bankErr = document.getElementById('bankErr');
 const transferBtn = document.getElementById('transferBtn');
+const bankListEl = document.getElementById('bankList');
 
 let selectedBank = null;
+window.customRecipientName = null;
 
-// Маска телефона +7 (___) ___-__-__
+bankListEl.innerHTML = Object.entries(BANKS).map(([id, b]) => `
+  <div class="bank-item" data-bank="${id}" onclick="selectBank('${id}')">
+    <div class="bank-logo">${b.logo}</div>
+    <div class="bank-info"><div class="name">${b.name}</div><div class="sub">Быстрый перевод по СБП</div></div>
+    <div class="bank-check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+  </div>
+`).join('');
+
 phoneInput.addEventListener('input', (e) => {
   let v = e.target.value.replace(/\D/g, '');
   if (v.startsWith('8')) v = '7' + v.slice(1);
   if (!v.startsWith('7')) v = '7' + v;
   v = v.slice(0, 11);
-
   let out = '+7';
   if (v.length > 1) out += ' (' + v.slice(1, 4);
   if (v.length >= 4) out += ') ' + v.slice(4, 7);
@@ -829,56 +524,31 @@ amountInput.addEventListener('input', (e) => {
   e.target.value = e.target.value.replace(/\D/g, '');
   validateAmount();
 });
-
 bankSearch.addEventListener('input', renderBankSearch);
 
 function validatePhone() {
   const digits = phoneInput.value.replace(/\D/g, '');
-  if (!phoneInput.value || digits.length === 1) {
-    phoneInput.classList.remove('error');
-    phoneErr.textContent = '';
-    return null;
-  }
-  if (digits.length !== 11) {
-    phoneInput.classList.add('error');
-    phoneErr.textContent = 'Введите номер полностью';
-    return false;
-  }
-  phoneInput.classList.remove('error');
-  phoneErr.textContent = '';
-  return true;
+  if (!phoneInput.value || digits.length === 1) { phoneInput.classList.remove('error'); phoneErr.textContent = ''; return null; }
+  if (digits.length !== 11) { phoneInput.classList.add('error'); phoneErr.textContent = 'Введите номер полностью'; return false; }
+  const full = '+' + digits;
+  if (full === myPhone) { phoneInput.classList.add('error'); phoneErr.textContent = 'Нельзя перевести самому себе'; return false; }
+  if (!users[full]) { phoneInput.classList.add('error'); phoneErr.textContent = 'Этот номер не зарегистрирован в игре'; return false; }
+  phoneInput.classList.remove('error'); phoneErr.textContent = ''; return true;
 }
 
 function validateAmount() {
   const v = parseInt(amountInput.value || '0', 10);
-  if (!amountInput.value) {
-    amountInput.classList.remove('error');
-    amountErr.textContent = '';
-    return null;
-  }
-  if (v <= 0) {
-    amountInput.classList.add('error');
-    amountErr.textContent = 'Сумма должна быть больше 0';
-    return false;
-  }
-  if (v > state.balance) {
-    amountInput.classList.add('error');
-    amountErr.textContent = 'Недостаточно средств';
-    return false;
-  }
-  amountInput.classList.remove('error');
-  amountErr.textContent = '';
-  return true;
+  const me = users[myPhone];
+  if (!amountInput.value) { amountInput.classList.remove('error'); amountErr.textContent = ''; return null; }
+  if (v <= 0) { amountInput.classList.add('error'); amountErr.textContent = 'Сумма должна быть больше 0'; return false; }
+  if (v > me.balance) { amountInput.classList.add('error'); amountErr.textContent = 'Недостаточно средств'; return false; }
+  amountInput.classList.remove('error'); amountErr.textContent = ''; return true;
 }
 
 function selectBank(id) {
   selectedBank = id;
-  document.querySelectorAll('#bankList .bank-item').forEach(el => {
-    el.classList.toggle('selected', el.dataset.bank === id);
-  });
-  document.querySelectorAll('#bankSearchResults .bank-item').forEach(el => {
-    el.classList.toggle('selected', el.dataset.bank === id);
-  });
+  document.querySelectorAll('#bankList .bank-item').forEach(el => el.classList.toggle('selected', el.dataset.bank === id));
+  document.querySelectorAll('#bankSearchResults .bank-item').forEach(el => el.classList.toggle('selected', el.dataset.bank === id));
   bankErr.textContent = '';
 }
 
@@ -887,75 +557,68 @@ function renderBankSearch() {
   const wrap = document.getElementById('bankSearchResults');
   if (!q) { wrap.innerHTML = ''; return; }
   const found = OTHER_BANKS.filter(b => b.name.toLowerCase().includes(q));
-  if (!found.length) {
-    wrap.innerHTML = `<div style="padding:12px 4px; font-size:12px; color:var(--text-muted);">Ничего не найдено</div>`;
-    return;
-  }
-  wrap.innerHTML = found.map(b => {
-    const isSel = selectedBank === b.id;
-    return `
-      <div class="bank-item ${isSel ? 'selected' : ''}" data-bank="${b.id}" onclick="selectBank('${b.id}')">
-        <div class="bank-logo" style="background:${b.color};">${b.short}</div>
-        <div class="bank-info">
-          <div class="name">${escapeHtml(b.name)}</div>
-          <div class="sub">Перевод по СБП</div>
-        </div>
-        <div class="bank-check">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-      </div>
-    `;
-  }).join('');
+  if (!found.length) { wrap.innerHTML = `<div style="padding:12px 4px; font-size:12px; color:var(--text-muted);">Ничего не найдено</div>`; return; }
+  wrap.innerHTML = found.map(b => `
+    <div class="bank-item ${selectedBank === b.id ? 'selected' : ''}" data-bank="${b.id}" onclick="selectBank('${b.id}')">
+      <div class="bank-logo">${b.logo}</div>
+      <div class="bank-info"><div class="name">${escapeHtml(b.name)}</div><div class="sub">Перевод по СБП</div></div>
+      <div class="bank-check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+    </div>
+  `).join('');
 }
 
 transferBtn.addEventListener('click', () => {
   const pOk = validatePhone();
   const aOk = validateAmount();
-
-  if (!selectedBank) {
-    bankErr.textContent = 'Выберите банк получателя';
-    return;
-  }
-
+  if (!selectedBank) { bankErr.textContent = 'Выберите банк получателя'; return; }
   if (pOk === false || aOk === false) return;
-  if (pOk === null || aOk === null) {
-    showToast('Заполните все поля', 'error');
-    return;
-  }
+  if (pOk === null || aOk === null) { showToast('Заполните все поля', 'error'); return; }
 
   const amount = parseInt(amountInput.value, 10);
-  const bankName = BANKS[selectedBank]?.name
-    || OTHER_BANKS.find(b => b.id === selectedBank)?.name
-    || 'Банк';
-  const phoneMask = phoneInput.value;
+  const toPhone = '+' + phoneInput.value.replace(/\D/g, '');
+  const bankName = BANKS[selectedBank]?.name || OTHER_BANKS.find(b => b.id === selectedBank)?.name || 'Банк';
+  const dateStr = getFormattedDate();
   const comment = commentInput.value.trim();
 
-  state.balance -= amount;
+  // Списываем у себя, начисляем получателю
+  users[myPhone].balance -= amount;
+  users[toPhone].balance += amount;
+  saveUsers();
+
+  // Если пользователь задал кастомное имя, сохраним его в реестре получателя (только для отображения)
+  if (window.customRecipientName) {
+    // Не перезаписываем реальное имя, но сохраним в meta
+  }
+
   state.transactions.unshift({
     id: Date.now(),
-    name: 'Перевод ' + bankName + (comment ? ' · ' + comment : ''),
-    date: 'Только что',
-    amount: -amount,
-    icon: 'send',
+    from: myPhone,
+    to: toPhone,
+    date: dateStr,
+    amount: amount,
     category: 'Другое',
-    meta: { phone: phoneMask, bank: bankName },
+    icon: 'send',
+    meta: {
+      bank: bankName,
+      comment,
+      recipient: window.customRecipientName || users[toPhone].name,
+    }
   });
   saveState();
   renderHome();
 
-  // сброс формы
+  // Сброс
   phoneInput.value = '';
   amountInput.value = '';
   commentInput.value = '';
   bankSearch.value = '';
   document.getElementById('bankSearchResults').innerHTML = '';
-  phoneErr.textContent = '';
-  amountErr.textContent = '';
-  bankErr.textContent = '';
+  phoneErr.textContent = ''; amountErr.textContent = ''; bankErr.textContent = '';
   selectedBank = null;
+  window.customRecipientName = null;
   document.querySelectorAll('.bank-item').forEach(el => el.classList.remove('selected'));
 
-  showToast(`Переведено ${fmtMoney(amount)}`);
+  showToast(`Переведено ${fmtMoney(amount)} → ${users[toPhone].name}`);
   goTo('home', 'backward');
 });
 
@@ -972,50 +635,35 @@ function showToast(msg, type) {
 
 /* ========== ГРАФИК ========== */
 let chartInstance = null;
+const CATEGORY_COLORS = { 'Другое': '#a29bfe', 'Продукты': '#6c5ce7', 'Кафе': '#fd79a8', 'Развлечения': '#fdcb6e', 'Транспорт': '#0984e3', 'Здоровье': '#00b894', 'Жильё': '#e17055', 'Доход': '#00cec9' };
 
 function renderChart() {
+  const myTx = state.transactions.filter(t => t.from === myPhone);
   const byCat = {};
-  state.transactions.forEach(tx => {
-    if (tx.amount < 0) {
-      byCat[tx.category] = (byCat[tx.category] || 0) + Math.abs(tx.amount);
-    }
-  });
+  myTx.forEach(tx => { byCat[tx.category] = (byCat[tx.category] || 0) + Math.abs(tx.amount); });
   const labels = Object.keys(byCat);
   const values = labels.map(l => byCat[l]);
   const colors = labels.map(l => CATEGORY_COLORS[l] || '#a29bfe');
-
   const isDark = state.theme === 'dark';
   const borderColor = isDark ? '#1e1e2e' : '#ffffff';
 
   if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
 
   if (!labels.length) {
-    document.getElementById('chartLegend').innerHTML =
-      '<div style="color:var(--text-muted); font-size:13px; padding:8px 0; text-align:center; width:100%;">Нет данных для отображения</div>';
-    // пустой canvas — просто рисуем прозрачный фон
+    document.getElementById('chartLegend').innerHTML = '<div style="color:var(--text-muted); font-size:13px; padding:8px 0; text-align:center; width:100%;">Нет расходов</div>';
     const ctx = document.getElementById('expenseChart').getContext('2d');
-    chartInstance = new Chart(ctx, { type: 'doughnut', data: { labels: ['Нет данных'], datasets: [{ data: [1], backgroundColor: ['#e5e5ee'], borderWidth: 0 }] },
-      options: { responsive: true, cutout: '62%', plugins: { legend: { display: false }, tooltip: { enabled: false } } } });
+    chartInstance = new Chart(ctx, {
+      type: 'doughnut', data: { labels: ['Нет данных'], datasets: [{ data: [1], backgroundColor: ['#e5e5ee'], borderWidth: 0 }] },
+      options: { responsive: true, cutout: '62%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+    });
     return;
   }
-
   const ctx = document.getElementById('expenseChart').getContext('2d');
   chartInstance = new Chart(ctx, {
-    type: 'doughnut',
-    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor, borderWidth: 3 }] },
-    options: {
-      responsive: true, maintainAspectRatio: true, cutout: '62%',
-      animation: { duration: 700, easing: 'easeOutCubic' },
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: c => ` ${c.label}: ${fmtMoney(c.parsed)}` } }
-      }
-    }
+    type: 'doughnut', data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor, borderWidth: 3 }] },
+    options: { responsive: true, maintainAspectRatio: true, cutout: '62%', animation: { duration: 700, easing: 'easeOutCubic' }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.label}: ${fmtMoney(c.parsed)}` } } } }
   });
-
-  document.getElementById('chartLegend').innerHTML = labels.map((l, i) =>
-    `<div class="legend-item"><span class="legend-dot" style="background:${colors[i]}"></span>${escapeHtml(l)} · ${fmtMoney(values[i])}</div>`
-  ).join('');
+  document.getElementById('chartLegend').innerHTML = labels.map((l, i) => `<div class="legend-item"><span class="legend-dot" style="background:${colors[i]}"></span>${escapeHtml(l)} · ${fmtMoney(values[i])}</div>`).join('');
 }
 
 /* ========== НАСТРОЙКИ ========== */
@@ -1026,41 +674,39 @@ function applyTheme() {
 }
 function toggleTheme() {
   state.theme = state.theme === 'dark' ? 'light' : 'dark';
-  saveState();
-  applyTheme();
+  saveState(); applyTheme();
   if (document.getElementById('screen-chart').classList.contains('active')) renderChart();
 }
 function updateSettings() {
-  document.getElementById('balanceSetting').textContent = fmtMoney(state.balance);
-  const bytes = new Blob([JSON.stringify(state)]).size;
+  const me = users[myPhone];
+  document.getElementById('myPhoneEl').textContent = myPhone;
+  document.getElementById('myNameEl').textContent = me.name;
+  document.getElementById('myBalanceRegEl').textContent = fmtMoney(me.balance);
+  const bytes = new Blob([JSON.stringify({ users, state })]).size;
   document.getElementById('storageInfo').textContent = `Записей: ${state.transactions.length} · ${(bytes / 1024).toFixed(1)} КБ`;
   applyTheme();
 }
-
-/* ========== ЭКСПОРТ ========== */
 function exportData() {
-  const data = JSON.stringify(state, null, 2);
+  const data = JSON.stringify({ myPhone, users, state }, null, 2);
   const blob = new Blob([data], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
-  a.download = 'mybank-export-' + new Date().toISOString().slice(0, 10) + '.json';
-  a.click();
-  URL.revokeObjectURL(url);
+  a.href = url; a.download = 'mybank-export-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click(); URL.revokeObjectURL(url);
   showToast('Файл сохранён');
 }
-
-/* ========== СБРОС ========== */
 function resetData() {
-  if (!confirm('Сбросить все данные?')) return;
+  if (!confirm('Сбросить все данные (включая балансы игроков)?')) return;
+  localStorage.removeItem(USERS_KEY);
   localStorage.removeItem(STORAGE_KEY);
-  state = JSON.parse(JSON.stringify(DEFAULT_DATA));
-  saveState();
-  applyTheme();
-  renderHome();
-  updateSettings();
-  selectedBank = null;
-  showToast('Данные сброшены');
+  localStorage.removeItem(MY_PHONE_KEY);
+  users = JSON.parse(JSON.stringify(DEFAULT_USERS));
+  state = { transactions: [], theme: 'light', filter: 'all' };
+  myPhone = DEFAULT_MY_PHONE;
+  saveUsers(); saveState();
+  applyTheme(); renderHome(); updateSettings();
+  selectedBank = null; window.customRecipientName = null;
+  showToast('Всё сброшено');
 }
 
 /* ========== ИНИЦИАЛИЗАЦИЯ ========== */
