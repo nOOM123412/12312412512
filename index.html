@@ -2,1330 +2,1071 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Trading Mini App</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мой Банк</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-:root {
-  --bg: #0B0E14;
-  --card: #1E232F;
-  --accent: #4F46E5;
-  --green: #10B981;
-  --red: #EF4444;
-}
-* { -webkit-tap-highlight-color: transparent; }
-body { 
-  background-color: var(--bg); 
-  color: #FFFFFF; 
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
-  letter-spacing: -0.01em;
-}
+  :root {
+    --bg-body: #1a1a2e;
+    --bg-phone: #f5f6fa;
+    --bg-card: #ffffff;
+    --bg-icon: #eeecff;
+    --bg-icon-hover: #ddd8ff;
+    --bg-tx-icon: #f0f0f5;
+    --text-main: #1a1a2e;
+    --text-muted: #999;
+    --text-secondary: #555;
+    --accent: #6c5ce7;
+    --accent-soft: rgba(108, 92, 231, 0.12);
+    --green: #00b894;
+    --red: #ff4757;
+    --border: #eee;
+    --nav-bg: #ffffff;
+    --header-gradient: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    --card-gradient: linear-gradient(135deg, #2d3436, #636e72);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+    --shadow-md: 0 8px 20px rgba(0,0,0,0.08);
+  }
+  [data-theme="dark"] {
+    --bg-phone: #12121c;
+    --bg-card: #1e1e2e;
+    --bg-icon: #2a2a40;
+    --bg-icon-hover: #35355a;
+    --bg-tx-icon: #2a2a3e;
+    --text-main: #eaeaf0;
+    --text-muted: #7a7a8c;
+    --text-secondary: #b0b0c0;
+    --accent: #8b7eff;
+    --accent-soft: rgba(139, 126, 255, 0.15);
+    --border: #2a2a3e;
+    --nav-bg: #1a1a28;
+    --header-gradient: linear-gradient(135deg, #4a3fc9, #6c5ce7);
+    --card-gradient: linear-gradient(135deg, #1a1a2a, #2d2d44);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.25);
+    --shadow-md: 0 8px 20px rgba(0,0,0,0.4);
+  }
 
-/* ================== ЭКРАНЫ ================== */
-.screen { display: none; }
-.screen.active { 
-  display: block; 
-  animation: screenIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-@keyframes screenIn {
-  0% { opacity: 0; transform: translateY(20px) scale(0.98); filter: blur(4px); }
-  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-}
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
+  html, body { transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+  body {
+    background: var(--bg-body); display: flex; justify-content: center;
+    min-height: 100vh;
+  }
+  .phone {
+    width: 390px; height: 844px; background: var(--bg-phone);
+    border-radius: 40px; overflow: hidden; position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5); margin: 20px;
+    display: flex; flex-direction: column;
+    transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
-/* ================== КАСКАД ================== */
-.stagger-item {
-  opacity: 0;
-  animation: staggerFadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.stagger-item:nth-child(1) { animation-delay: 0.04s; }
-.stagger-item:nth-child(2) { animation-delay: 0.08s; }
-.stagger-item:nth-child(3) { animation-delay: 0.12s; }
-.stagger-item:nth-child(4) { animation-delay: 0.16s; }
-.stagger-item:nth-child(5) { animation-delay: 0.20s; }
-.stagger-item:nth-child(6) { animation-delay: 0.24s; }
-.stagger-item:nth-child(7) { animation-delay: 0.28s; }
-.stagger-item:nth-child(8) { animation-delay: 0.32s; }
-.stagger-item:nth-child(9) { animation-delay: 0.36s; }
-.stagger-item:nth-child(10) { animation-delay: 0.40s; }
-@keyframes staggerFadeIn {
-  0% { opacity: 0; transform: translateY(12px); filter: blur(2px); }
-  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
-}
+  /* ===== Экраны с плавными переходами ===== */
+  .screen {
+    position: absolute; inset: 0; bottom: 74px;
+    overflow-y: auto; overflow-x: hidden;
+    display: flex; flex-direction: column;
+    opacity: 0; visibility: hidden;
+    transform: translateX(30px) scale(0.98);
+    transition:
+      opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.35s cubic-bezier(0.34, 1.15, 0.64, 1),
+      visibility 0s linear 0.35s;
+    will-change: transform, opacity;
+  }
+  .screen::-webkit-scrollbar { width: 0; }
+  .screen.active {
+    opacity: 1; visibility: visible;
+    transform: translateX(0) scale(1);
+    transition:
+      opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.4s cubic-bezier(0.34, 1.15, 0.64, 1),
+      visibility 0s;
+    z-index: 2;
+  }
+  .screen.exit-left { transform: translateX(-30px) scale(0.98); }
+  .screen.exit-right { transform: translateX(30px) scale(0.98); }
 
-/* ================== НИЖНЯЯ ПАНЕЛЬ ================== */
-.bottom-nav {
-  background-color: rgba(11,14,20,0.94);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-top: 1px solid rgba(255,255,255,0.05);
-}
-.nav-btn { 
-  color: #6B7280; 
-  transition: all 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  border-radius: 14px;
-  padding: 8px 10px;
-  position: relative;
-  gap: 4px;
-  flex: 1;
-}
-.nav-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at center, rgba(79,70,229,0.25) 0%, transparent 70%);
-  opacity: 0;
-  transform: scale(0.5);
-  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-  border-radius: 14px;
-}
-.nav-btn svg { 
-  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.4s ease;
-  position: relative;
-  z-index: 1;
-}
-.nav-btn span {
-  position: relative;
-  z-index: 1;
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.nav-btn.active { color: #FFFFFF; }
-.nav-btn.active::before { opacity: 1; transform: scale(1); }
-.nav-btn.active svg { 
-  transform: scale(1.18) translateY(-2px); 
-  filter: drop-shadow(0 0 8px rgba(79,70,229,0.6));
-}
-.nav-btn.active span { transform: translateY(1px) scale(1.05); }
-.nav-btn.active::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 50%;
-  transform: translateX(-50%);
-  width: 24px; height: 3px;
-  background: linear-gradient(90deg, transparent, #6366F1, transparent);
-  border-radius: 0 0 4px 4px;
-  animation: tabGlow 2s ease-in-out infinite;
-  box-shadow: 0 0 12px rgba(99,102,241,0.8);
-}
-@keyframes tabGlow {
-  0%, 100% { opacity: 0.7; width: 22px; }
-  50% { opacity: 1; width: 36px; }
-}
+  /* стаггер для карточек при входе */
+  .screen.active .stagger > * {
+    animation: slideUp 0.45s cubic-bezier(0.34, 1.15, 0.64, 1) backwards;
+  }
+  .screen.active .stagger > *:nth-child(1) { animation-delay: 0.02s; }
+  .screen.active .stagger > *:nth-child(2) { animation-delay: 0.05s; }
+  .screen.active .stagger > *:nth-child(3) { animation-delay: 0.08s; }
+  .screen.active .stagger > *:nth-child(4) { animation-delay: 0.11s; }
+  .screen.active .stagger > *:nth-child(5) { animation-delay: 0.14s; }
+  .screen.active .stagger > *:nth-child(6) { animation-delay: 0.17s; }
+  .screen.active .stagger > *:nth-child(7) { animation-delay: 0.20s; }
+  .screen.active .stagger > *:nth-child(8) { animation-delay: 0.23s; }
+  .screen.active .stagger > *:nth-child(n+9) { animation-delay: 0.26s; }
 
-/* ================== ГРАФИКИ ================== */
-.sparkline-up, .sparkline-down {
-  fill: none; stroke-width: 2;
-  stroke-linecap: round; stroke-linejoin: round;
-  stroke-dasharray: 200; stroke-dashoffset: 200;
-  animation: drawLine 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  animation-delay: 0.4s;
-}
-.sparkline-up { stroke: var(--green); }
-.sparkline-down { stroke: var(--red); }
-@keyframes drawLine { to { stroke-dashoffset: 0; } }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
-/* ================== КНОПКИ ================== */
-.btn-press {
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), 
-              box-shadow 0.35s ease, 
-              background-color 0.3s ease,
-              opacity 0.2s ease;
-  will-change: transform;
-}
-.btn-press:active { 
-  transform: scale(0.95);
-  opacity: 0.85;
-}
-.btn-press:disabled { opacity: 0.4; pointer-events: none; }
+  /* ===== Шапка ===== */
+  .header {
+    background: var(--header-gradient);
+    color: white; padding: 50px 24px 24px; border-radius: 0 0 30px 30px;
+    transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+  }
+  .header.compact { padding-bottom: 20px; }
+  .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .header.compact .header-top { margin-bottom: 8px; }
+  .avatar {
+    width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 14px; letter-spacing: 0.5px;
+  }
+  .bell {
+    width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    position: relative; transition: background 0.2s;
+  }
+  .bell:hover { background: rgba(255,255,255,0.25); }
+  .bell::after {
+    content: ''; position: absolute; top: 9px; right: 10px;
+    width: 7px; height: 7px; background: var(--red); border-radius: 50%;
+    border: 1.5px solid #8a7cf0;
+  }
+  .back-btn {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .back-btn:hover { background: rgba(255,255,255,0.15); }
+  .back-btn:active { transform: scale(0.92); }
+  .header-title { font-weight: 600; font-size: 17px; }
+  .header-spacer { width: 40px; }
+  .balance-label { font-size: 13px; opacity: 0.8; margin-bottom: 6px; }
+  .balance { font-size: 34px; font-weight: 700; letter-spacing: -0.5px; }
+  .card-visual {
+    background: var(--card-gradient);
+    border-radius: 16px; padding: 20px; color: white; margin-top: 20px;
+    box-shadow: var(--shadow-md); position: relative; overflow: hidden;
+    transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .card-visual::before {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 140px; height: 140px; border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+  }
+  .card-visual .chip {
+    width: 34px; height: 24px; border-radius: 5px;
+    background: linear-gradient(135deg, #d4af37, #f0e2a0);
+    margin-bottom: 8px; position: relative;
+  }
+  .card-visual .chip::after {
+    content: ''; position: absolute; inset: 5px 8px;
+    border-left: 1px solid rgba(0,0,0,0.2); border-right: 1px solid rgba(0,0,0,0.2);
+  }
+  .card-visual .num { font-size: 17px; letter-spacing: 2px; margin: 14px 0; font-weight: 500; }
+  .card-visual .row { display: flex; justify-content: space-between; font-size: 12px; opacity: 0.9; letter-spacing: 0.5px; }
 
-/* ================== МОДАЛКИ (ПЛАВНОЕ ОТКРЫТИЕ) ================== */
-.modal-backdrop {
-  position: fixed; inset: 0;
-  background-color: rgba(0,0,0,0.65);
-  backdrop-filter: blur(0px);
-  -webkit-backdrop-filter: blur(0px);
-  z-index: 100;
-  display: none;
-  opacity: 0;
-  transition: opacity 0.45s ease, backdrop-filter 0.45s ease;
-}
-.modal-backdrop.show {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  opacity: 1;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-.modal-sheet {
-  background: linear-gradient(180deg, #232936 0%, #1E232F 100%);
-  width: 100%;
-  max-width: 448px;
-  border-radius: 28px 28px 0 0;
-  padding: 20px 20px 32px;
-  transform: translateY(100%) scale(0.96);
-  opacity: 0;
-  transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1), 
-              opacity 0.45s ease;
-  max-height: 88vh;
-  overflow-y: auto;
-  box-shadow: 0 -15px 50px rgba(0,0,0,0.6);
-}
-.modal-backdrop.show .modal-sheet { 
-  transform: translateY(0) scale(1); 
-  opacity: 1;
-}
-.modal-handle {
-  width: 44px; height: 5px;
-  background: linear-gradient(90deg, #2A303C, #4A5060, #2A303C);
-  border-radius: 9999px;
-  margin: 0 auto 18px;
-}
-.modal-backdrop.show .modal-handle {
-  animation: handleWiggle 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-@keyframes handleWiggle {
-  0% { transform: scaleX(0.5); opacity: 0; }
-  60% { transform: scaleX(1.15); opacity: 1; }
-  100% { transform: scaleX(1); opacity: 1; }
-}
+  /* ===== Быстрые действия ===== */
+  .actions {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+    padding: 24px 16px; background: var(--bg-card); margin: 16px; border-radius: 20px;
+    transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-sm);
+  }
+  .action { text-align: center; cursor: pointer; }
+  .action .icon {
+    width: 52px; height: 52px; border-radius: 16px; background: var(--bg-icon);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 6px; transition: background 0.25s, transform 0.2s;
+  }
+  .action:hover .icon { background: var(--bg-icon-hover); }
+  .action:active .icon { transform: scale(0.92); }
+  .action .icon svg { stroke: var(--accent); }
+  .action span { font-size: 11px; color: var(--text-secondary); }
 
-/* ========== КАСКАД ВНУТРИ МОДАЛКИ ========== */
-.modal-content > * {
-  opacity: 0;
-  animation: modalContentIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.modal-content > *:nth-child(1) { animation-delay: 0.18s; }
-.modal-content > *:nth-child(2) { animation-delay: 0.24s; }
-.modal-content > *:nth-child(3) { animation-delay: 0.30s; }
-.modal-content > *:nth-child(4) { animation-delay: 0.36s; }
-.modal-content > *:nth-child(5) { animation-delay: 0.42s; }
-.modal-content > *:nth-child(6) { animation-delay: 0.48s; }
-.modal-content > *:nth-child(7) { animation-delay: 0.54s; }
-.modal-content > *:nth-child(8) { animation-delay: 0.60s; }
+  /* ===== Фильтр категорий ===== */
+  .filter-bar {
+    display: flex; gap: 8px; padding: 0 16px 12px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .filter-bar::-webkit-scrollbar { display: none; }
+  .chip {
+    padding: 8px 14px; border-radius: 20px; background: var(--bg-card);
+    color: var(--text-secondary); font-size: 12px; font-weight: 500;
+    white-space: nowrap; cursor: pointer; border: 1.5px solid var(--border);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0;
+  }
+  .chip:hover { border-color: var(--accent); }
+  .chip.active {
+    background: var(--accent); border-color: var(--accent); color: white;
+    box-shadow: 0 4px 12px var(--accent-soft);
+  }
 
-@keyframes modalContentIn {
-  0% { opacity: 0; transform: translateY(14px); filter: blur(2px); }
-  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
-}
+  /* ===== Транзакции ===== */
+  .section-title {
+    padding: 0 24px; font-weight: 700; font-size: 17px; margin-bottom: 12px;
+    color: var(--text-main);
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .section-title .count { font-size: 12px; font-weight: 500; color: var(--text-muted); }
+  .transactions { padding: 0 16px; }
+  .empty-state {
+    padding: 40px 24px; text-align: center; color: var(--text-muted);
+    font-size: 13px; line-height: 1.5;
+  }
+  .empty-state .big-icon {
+    width: 64px; height: 64px; margin: 0 auto 16px;
+    background: var(--bg-tx-icon); border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .empty-state .big-icon svg { stroke: var(--text-muted); }
+  .tx {
+    background: var(--bg-card); border-radius: 14px; padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px; margin-bottom: 8px;
+    transition: background 0.3s, transform 0.15s;
+    box-shadow: var(--shadow-sm);
+  }
+  .tx:hover { transform: translateY(-1px); }
+  .tx-icon {
+    width: 40px; height: 40px; border-radius: 12px; background: var(--bg-tx-icon);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .tx-icon svg { stroke: var(--text-secondary); }
+  .tx-info { flex: 1; min-width: 0; }
+  .tx-info .name { font-size: 14px; font-weight: 500; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tx-info .date { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .tx-amount { font-weight: 600; font-size: 14px; color: var(--text-main); white-space: nowrap; }
+  .tx-amount.in { color: var(--green); }
 
-/* ================== TAB FILTER ================== */
-.tab-filter {
-  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-  color: #6B7280;
-  border-bottom: 2px solid transparent;
-  padding: 10px 4px;
-  position: relative;
-}
-.tab-filter.active {
-  color: #FFFFFF;
-  border-bottom-color: var(--accent);
-}
-.tab-filter.active::after {
-  content: '';
-  position: absolute;
-  bottom: -2px; left: 50%;
-  transform: translateX(-50%);
-  width: 100%; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  filter: blur(2px);
-  animation: tabUnderline 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-@keyframes tabUnderline {
-  0% { width: 0; opacity: 0; }
-  100% { width: 100%; opacity: 1; }
-}
+  /* ===== Нижняя навигация ===== */
+  .nav {
+    position: absolute; bottom: 0; left: 0; right: 0; background: var(--nav-bg);
+    display: flex; justify-content: space-around; padding: 12px 0 22px;
+    border-top: 1px solid var(--border);
+    transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.4s;
+    z-index: 10;
+  }
+  .nav-item {
+    text-align: center; color: var(--text-muted); font-size: 10px;
+    cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    transition: color 0.25s; flex: 1; padding: 4px 0; position: relative;
+  }
+  .nav-item svg {
+    stroke: var(--text-muted);
+    transition: stroke 0.25s, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .nav-item.active { color: var(--accent); }
+  .nav-item.active svg { stroke: var(--accent); transform: translateY(-2px) scale(1.1); }
 
-/* ================== TOAST ================== */
-.toast {
-  position: fixed;
-  bottom: 110px;
-  left: 50%;
-  transform: translateX(-50%) translateY(30px) scale(0.85);
-  background: rgba(30,35,47,0.95);
-  backdrop-filter: blur(20px);
-  color: white;
-  padding: 12px 22px;
-  border-radius: 9999px;
-  font-size: 13px;
-  font-weight: 600;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
-  opacity: 0;
-  pointer-events: none;
-  transition: all 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
-  z-index: 200;
-  border: 1px solid rgba(255,255,255,0.08);
-  filter: blur(4px);
-}
-.toast.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0) scale(1);
-  filter: blur(0);
-}
+  /* ===== Форма перевода ===== */
+  .form-wrap { padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 12px; color: var(--text-secondary); font-weight: 500; padding-left: 4px; }
+  .field input {
+    padding: 15px 16px; border-radius: 14px; border: 1.5px solid var(--border);
+    background: var(--bg-card); color: var(--text-main); font-size: 15px;
+    outline: none; transition: border-color 0.25s, background 0.3s, color 0.3s, box-shadow 0.25s;
+    box-shadow: var(--shadow-sm);
+  }
+  .field input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  .field input.error { border-color: var(--red); }
+  .field input.error:focus { box-shadow: 0 0 0 4px rgba(255,71,87,0.12); }
+  .field .err-msg { font-size: 11px; color: var(--red); min-height: 14px; padding-left: 4px; transition: opacity 0.2s; }
+  .btn {
+    padding: 16px; border-radius: 14px; border: none; cursor: pointer;
+    background: var(--accent); color: white; font-size: 15px; font-weight: 600;
+    transition: opacity 0.2s, transform 0.12s, box-shadow 0.25s;
+    box-shadow: 0 6px 16px var(--accent-soft);
+  }
+  .btn:hover { opacity: 0.92; box-shadow: 0 8px 22px var(--accent-soft); }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+  .btn.ghost {
+    background: var(--bg-card); color: var(--text-main);
+    border: 1.5px solid var(--border); box-shadow: var(--shadow-sm);
+  }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
 
-/* ================== СЕКЦИИ MARKET ================== */
-.market-section { display: none; }
-.market-section.active { 
-  display: block; 
-  animation: sectionIn 0.6s cubic-bezier(0.16, 1, 0.3, 1); 
-}
-@keyframes sectionIn {
-  0% { opacity: 0; transform: translateX(15px); filter: blur(3px); }
-  100% { opacity: 1; transform: translateX(0); filter: blur(0); }
-}
+  /* ===== Банки ===== */
+  .bank-list { display: flex; flex-direction: column; gap: 8px; }
+  .bank-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; border-radius: 14px;
+    background: var(--bg-card); border: 1.5px solid var(--border);
+    cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-sm);
+  }
+  .bank-item:hover { border-color: var(--accent); }
+  .bank-item.selected {
+    border-color: var(--accent); background: var(--accent-soft);
+  }
+  .bank-logo {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; color: white; flex-shrink: 0;
+  }
+  .bank-logo.tbank { background: linear-gradient(135deg, #ffdd2d, #feb700); color: #333; }
+  .bank-logo.sber { background: linear-gradient(135deg, #21a038, #0f8a2e); }
+  .bank-logo.ozon { background: linear-gradient(135deg, #005bff, #0039d6); }
+  .bank-logo.other { background: var(--bg-tx-icon); color: var(--text-secondary); font-size: 18px; }
+  .bank-info { flex: 1; }
+  .bank-info .name { font-size: 14px; font-weight: 600; color: var(--text-main); }
+  .bank-info .sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .bank-check {
+    width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); flex-shrink: 0;
+  }
+  .bank-item.selected .bank-check {
+    background: var(--accent); border-color: var(--accent);
+    transform: scale(1.05);
+  }
+  .bank-check svg { stroke: white; opacity: 0; transition: opacity 0.2s; }
+  .bank-item.selected .bank-check svg { opacity: 1; }
 
-/* ================== LEVERAGE ================== */
-.lev-btn { transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
-.lev-btn.active {
-  background-color: var(--accent);
-  color: white;
-  box-shadow: 0 0 0 2px rgba(79,70,229,0.3), 0 0 20px rgba(79,70,229,0.5);
-  transform: scale(1.05);
-}
+  .search-wrap { position: relative; }
+  .search-wrap input { padding-left: 44px; }
+  .search-wrap .search-ico {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    pointer-events: none;
+  }
+  .search-wrap .search-ico svg { stroke: var(--text-muted); }
 
-/* ================== БАЛАНС ================== */
-.balance-flip { animation: balanceFlip 0.65s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-block; }
-@keyframes balanceFlip {
-  0% { opacity: 0; transform: rotateX(-90deg) scale(0.85); filter: blur(3px); }
-  60% { opacity: 1; transform: rotateX(15deg) scale(1.02); filter: blur(0); }
-  100% { opacity: 1; transform: rotateX(0) scale(1); filter: blur(0); }
-}
+  /* ===== Toast ===== */
+  .toast {
+    position: absolute; top: 20px; left: 50%;
+    transform: translateX(-50%) translateY(-120px);
+    background: var(--green); color: white; padding: 12px 24px; border-radius: 12px;
+    font-size: 13px; font-weight: 500; z-index: 100;
+    white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.error { background: var(--red); }
 
-/* ================== PULSE DOT ================== */
-.pulse-dot { animation: pulseDot 2s infinite; }
-@keyframes pulseDot {
-  0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); }
-  70% { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
-  100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
-}
+  /* ===== График ===== */
+  .chart-wrap {
+    margin: 0 16px; padding: 20px; background: var(--bg-card);
+    border-radius: 20px; transition: background 0.4s;
+    box-shadow: var(--shadow-sm);
+  }
+  .chart-wrap canvas { max-height: 260px; }
+  .chart-legend {
+    display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 16px;
+    padding-top: 16px; border-top: 1px solid var(--border);
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
 
-/* ================== ГРАДИЕНТНЫЕ КНОПКИ ================== */
-.btn-gradient-blue {
-  background: linear-gradient(135deg, #6366F1 0%, #4F46E5 50%, #4338CA 100%);
-  background-size: 200% 200%;
-  box-shadow: 0 8px 24px rgba(79,70,229,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
-  animation: gradientShift 6s ease infinite;
-}
-@keyframes gradientShift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-.btn-gradient-green {
-  background: linear-gradient(135deg, #34D399 0%, #10B981 50%, #059669 100%);
-  background-size: 200% 200%;
-  box-shadow: 0 8px 24px rgba(16,185,129,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
-  animation: gradientShift 6s ease infinite;
-}
-.btn-gradient-red {
-  background: linear-gradient(135deg, #F87171 0%, #EF4444 50%, #DC2626 100%);
-  background-size: 200% 200%;
-  box-shadow: 0 8px 24px rgba(239,68,68,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
-  animation: gradientShift 6s ease infinite;
-}
-
-/* ================== КАРТОЧКИ ================== */
-.card-hover { 
-  transition: background-color 0.35s ease, 
-              transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); 
-}
-.card-hover:active { 
-  background-color: rgba(255,255,255,0.03); 
-  transform: scale(0.985);
-}
-
-/* ================== ИКОНКИ ================== */
-.coin-icon { transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
-.coin-logo {
-  width: 70%;
-  height: 70%;
-  object-fit: contain;
-  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.coin-logo-wrap {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
-  overflow: hidden;
-  position: relative;
-}
-.card-hover:active .coin-logo { transform: scale(0.92); }
-
-/* ================== ПОЛЯ ВВОДА ================== */
-.input-field {
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  border: 1px solid transparent;
-  border-radius: 12px;
-}
-.input-field:focus {
-  border-color: rgba(79,70,229,0.6);
-  box-shadow: 0 0 0 3px rgba(79,70,229,0.15), 0 0 20px rgba(79,70,229,0.3);
-}
-
-/* ================== ЗАГОЛОВКИ ================== */
-.screen-title { animation: titleIn 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
-@keyframes titleIn {
-  0% { opacity: 0; transform: translateY(-8px); filter: blur(4px); }
-  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
-}
-
-/* ================== FIXED КНОПКИ ЛОНГ/ШОРТ ================== */
-.fixed-buttons {
-  position: fixed;
-  bottom: 90px;
-  left: 0; right: 0;
-  max-width: 448px;
-  margin: 0 auto;
-  padding: 0 20px;
-  z-index: 40;
-  display: flex;
-  gap: 12px;
-  pointer-events: none;
-  animation: stickyIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.fixed-buttons button { pointer-events: auto; }
-@keyframes stickyIn {
-  0% { opacity: 0; transform: translateY(20px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-
-/* ================== WALLET BADGE ================== */
-.wallet-badge { animation: walletPulse 3s ease-in-out infinite; }
-@keyframes walletPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.4); }
-  50% { box-shadow: 0 0 0 6px rgba(59,130,246,0); }
-}
-
-/* ================== DEPOSIT ================== */
-.deposit-btn svg { transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
-.deposit-btn:active svg { transform: scale(0.85) rotate(-8deg); }
-
-/* ================== CHART ================== */
-.chart-container { transition: all 0.4s ease; }
+  /* ===== Настройки ===== */
+  .settings { padding: 20px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .setting-row {
+    background: var(--bg-card); border-radius: 14px; padding: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    transition: background 0.3s; box-shadow: var(--shadow-sm);
+  }
+  .setting-row .label { font-size: 14px; color: var(--text-main); font-weight: 500; }
+  .setting-row .sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .switch {
+    position: relative; width: 48px; height: 28px; background: var(--border);
+    border-radius: 14px; cursor: pointer;
+    transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0;
+  }
+  .switch::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 22px; height: 22px; border-radius: 50%; background: white;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  }
+  .switch.on { background: var(--accent); }
+  .switch.on::after { transform: translateX(20px); }
+  .danger-btn {
+    padding: 15px; border-radius: 14px; border: 1.5px solid var(--red);
+    background: transparent; color: var(--red); font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: background 0.2s, transform 0.12s;
+  }
+  .danger-btn:hover { background: rgba(255,71,87,0.08); }
+  .danger-btn:active { transform: scale(0.98); }
 </style>
 </head>
-<body class="max-w-md mx-auto min-h-screen relative pb-28 overflow-x-hidden">
+<body>
+<div class="phone" id="phone">
+  <div class="toast" id="toast"></div>
 
-<!-- ================= ЭКРАН 1: WALLET ================= -->
-<div id="screen-wallet" class="screen active">
-  <div class="p-5 pt-8">
-    <div class="flex justify-between items-center mb-6 stagger-item">
-      <div class="flex items-center gap-2 bg-[#1E232F] px-3 py-1.5 rounded-full border border-gray-800/50 btn-press cursor-pointer">
-        <div class="w-6 h-6 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold shadow-lg wallet-badge">W1</div>
-        <span class="text-sm font-semibold">Wallet 1</span>
-        <svg class="w-3 h-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+  <!-- ===== ГЛАВНАЯ ===== -->
+  <div class="screen active" id="screen-home">
+    <div class="header">
+      <div class="header-top">
+        <div class="avatar">ИИ</div>
+        <div class="bell">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+        </div>
       </div>
-      <div class="flex gap-3">
-        <button onclick="openModal('history')" class="p-2 bg-[#1E232F] rounded-full text-gray-400 btn-press border border-gray-800/50">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-        </button>
-        <button onclick="openModal('scanner')" class="p-2 bg-[#1E232F] rounded-full text-gray-400 btn-press border border-gray-800/50 relative">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><path d="M7 12h10"/></svg>
-          <span class="absolute top-1 right-1 w-2 h-2 bg-[#EF4444] rounded-full pulse-dot"></span>
-        </button>
-      </div>
-    </div>
-
-    <div class="mb-6 stagger-item">
-      <div class="text-[13px] text-gray-500 mb-1">Общий баланс</div>
-      <div onclick="toggleBalance()" class="cursor-pointer select-none">
-        <span id="balance-text" class="text-[36px] font-bold leading-none inline-block" style="letter-spacing: -0.03em;">₽ 671 713</span>
+      <div class="balance-label">Общий баланс</div>
+      <div class="balance" id="balanceEl">0 ₽</div>
+      <div class="card-visual">
+        <div class="chip"></div>
+        <div class="num">2200 •••• •••• 1604</div>
+        <div class="row"><span>SAKEVICH VLADIMIR</span><span>09/28</span></div>
       </div>
     </div>
 
-    <div class="grid grid-cols-3 gap-3 mb-6 stagger-item">
-      <button onclick="openModal('receive')" class="deposit-btn bg-[#1E232F] border border-gray-800 p-3 rounded-2xl flex flex-col items-center justify-center gap-2 h-[85px] btn-press">
-        <svg class="w-6 h-6 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0l-5-5m5 5l5-5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
-        <span class="text-[10px] text-gray-400 font-medium">Receive<br>crypto</span>
-      </button>
-      <button onclick="openModal('deposit')" class="deposit-btn bg-[#1E232F] border border-gray-800 p-3 rounded-2xl flex flex-col items-center justify-center gap-2 h-[85px] btn-press">
-        <svg class="w-6 h-6 text-[#F0B90B]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L6.5 7.5l1.4 1.4L12 4.8l4.1 4.1 1.4-1.4L12 2zM6.5 16.5L12 22l5.5-5.5-1.4-1.4L12 19.2l-4.1-4.1-1.4 1.4zM3.5 9.5L2 11l1.5 1.5L5 11 3.5 9.5zM20.5 9.5L19 11l1.5 1.5L22 11l-1.5-1.5zM9.5 12l2.5 2.5 2.5-2.5L12 9.5 9.5 12z"/></svg>
-        <span class="text-[10px] text-gray-400 font-medium">Deposit<br>Binance</span>
-      </button>
-      <button onclick="openModal('applepay')" class="deposit-btn bg-[#1E232F] border border-gray-800 p-3 rounded-2xl flex flex-col items-center justify-center gap-2 h-[85px] btn-press">
-        <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.04 2.26-.79 3.59-.76 1.5.1 2.64.69 3.41 1.84-3.1 1.85-2.52 5.83.47 7.21-.71 1.76-1.79 3.23-2.59 4.28l.04-.4zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
-        <span class="text-[10px] text-gray-400 font-medium">Buy with<br>Apple Pay</span>
-      </button>
+    <div class="actions">
+      <div class="action" onclick="goTo('transfer')">
+        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div>
+        <span>Перевод</span>
+      </div>
+      <div class="action" onclick="goTo('chart')">
+        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+        <span>Платежи</span>
+      </div>
+      <div class="action">
+        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
+        <span>Связь</span>
+      </div>
+      <div class="action" onclick="goTo('settings')">
+        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+        <span>Ещё</span>
+      </div>
     </div>
 
-    <div onclick="switchScreen('futures')" class="flex justify-between items-center mb-4 cursor-pointer btn-press stagger-item">
-      <h3 class="text-[15px] font-semibold">Изучите токены</h3>
-      <svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    <div class="section-title">
+      <span>История операций</span>
+      <span class="count" id="txCount"></span>
     </div>
-    
-    <div class="space-y-1" id="wallet-list"></div>
+    <div class="filter-bar" id="filterBar"></div>
+    <div class="transactions stagger" id="txList"></div>
   </div>
-</div>
 
-<!-- ================= ЭКРАН 2: DISCOVER ================= -->
-<div id="screen-discover" class="screen">
-  <div class="p-5 pt-8">
-    <div class="flex justify-between items-center mb-5 stagger-item">
-      <h1 class="screen-title text-[24px] font-bold" style="letter-spacing: -0.02em;">Discover</h1>
-      <button onclick="showToast('Поиск DApps...')" class="p-2.5 bg-[#1E232F] rounded-full text-gray-400 btn-press border border-gray-800/50">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-      </button>
+  <!-- ===== ПЕРЕВОД ===== -->
+  <div class="screen" id="screen-transfer">
+    <div class="header compact">
+      <div class="header-top">
+        <div class="back-btn" onclick="goTo('home')">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </div>
+        <div class="header-title">Перевод</div>
+        <div class="header-spacer"></div>
+      </div>
     </div>
-    <div class="mb-6 stagger-item">
-      <h3 class="text-[14px] font-semibold mb-3 text-gray-300">Популярные DApps</h3>
-      <div class="grid grid-cols-2 gap-3" id="dapp-grid"></div>
-    </div>
-    <div class="stagger-item">
-      <h3 class="text-[14px] font-semibold mb-3 text-gray-300">Стейкинг</h3>
-      <div onclick="openModal('staking')" class="card-hover bg-gradient-to-br from-[#1E232F] to-[#252B38] p-4 rounded-2xl border border-gray-800 flex justify-between items-center btn-press cursor-pointer">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center shadow-lg shadow-green-500/30">
-            <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+
+    <div class="form-wrap">
+      <div class="field">
+        <label>Номер телефона получателя</label>
+        <input type="tel" id="phoneInput" placeholder="+7 (___) ___-__-__" maxlength="18" inputmode="numeric">
+        <div class="err-msg" id="phoneErr"></div>
+      </div>
+
+      <div class="field">
+        <label>Сумма (₽)</label>
+        <input type="text" id="amountInput" placeholder="0" inputmode="numeric">
+        <div class="err-msg" id="amountErr"></div>
+      </div>
+
+      <div class="field">
+        <label>Банк получателя</label>
+        <div class="bank-list" id="bankList">
+          <div class="bank-item" data-bank="tbank" onclick="selectBank('tbank')">
+            <div class="bank-logo tbank">Т</div>
+            <div class="bank-info">
+              <div class="name">Т-Банк</div>
+              <div class="sub">Быстрый перевод по СБП</div>
+            </div>
+            <div class="bank-check">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
           </div>
-          <div>
-            <div class="font-semibold text-[15px]">Earn with Trust</div>
-            <div class="text-[12px] text-gray-500">До 70% APY на стейблкоины</div>
+          <div class="bank-item" data-bank="sber" onclick="selectBank('sber')">
+            <div class="bank-logo sber">С</div>
+            <div class="bank-info">
+              <div class="name">СберБанк</div>
+              <div class="sub">Перевод по СБП</div>
+            </div>
+            <div class="bank-check">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+          </div>
+          <div class="bank-item" data-bank="ozon" onclick="selectBank('ozon')">
+            <div class="bank-logo ozon">О</div>
+            <div class="bank-info">
+              <div class="name">Озон Банк</div>
+              <div class="sub">Перевод по СБП</div>
+            </div>
+            <div class="bank-check">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
           </div>
         </div>
-        <svg class="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        <div class="err-msg" id="bankErr"></div>
+      </div>
+
+      <div class="field">
+        <label>Поиск другого банка</label>
+        <div class="search-wrap">
+          <span class="search-ico">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </span>
+          <input type="text" id="bankSearch" placeholder="Введите название банка">
+        </div>
+        <div class="bank-list" id="bankSearchResults" style="margin-top:8px;"></div>
+      </div>
+
+      <div class="field">
+        <label>Комментарий (необязательно)</label>
+        <input type="text" id="commentInput" placeholder="Например: за обед" maxlength="60">
+      </div>
+
+      <button class="btn" id="transferBtn">Перевести</button>
+    </div>
+  </div>
+
+  <!-- ===== ГРАФИК ===== -->
+  <div class="screen" id="screen-chart">
+    <div class="header compact">
+      <div class="header-top">
+        <div class="back-btn" onclick="goTo('home')">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </div>
+        <div class="header-title">Расходы по категориям</div>
+        <div class="header-spacer"></div>
+      </div>
+    </div>
+    <div style="padding-top: 24px;">
+      <div class="chart-wrap">
+        <canvas id="expenseChart"></canvas>
+        <div class="chart-legend" id="chartLegend"></div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- ================= ЭКРАН 3: SWAP ================= -->
-<div id="screen-swap" class="screen">
-  <div class="p-5 pt-8">
-    <div class="flex justify-between items-center mb-6 stagger-item">
-      <h1 class="screen-title text-[24px] font-bold" style="letter-spacing: -0.02em;">Swap</h1>
-      <button onclick="openModal('history')" class="p-2.5 bg-[#1E232F] rounded-full text-gray-400 btn-press border border-gray-800/50">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-      </button>
-    </div>
-
-    <div class="bg-gradient-to-br from-[#1E232F] to-[#252B38] rounded-2xl p-4 mb-1 border border-gray-800 stagger-item">
-      <div class="flex justify-between items-center mb-2">
-        <span class="text-[13px] text-gray-400">You Pay</span>
-        <span class="text-[13px] text-gray-400" id="balance-from">Balance: 0.054 BTC</span>
-      </div>
-      <div class="flex justify-between items-center">
-        <input id="input-from" type="text" placeholder="0.0" inputmode="decimal"
-          class="input-field bg-transparent text-[28px] font-bold w-full outline-none placeholder-gray-600 px-1">
-        <button onclick="showToast('Список валют в разработке')" class="flex items-center gap-2 bg-[#131722] px-3 py-2 rounded-full border border-gray-800 btn-press ml-2">
-          <div id="icon-from" class="coin-logo-wrap w-6 h-6 rounded-full flex items-center justify-center"></div>
-          <span id="symbol-from" class="font-semibold text-[14px]">BTC</span>
-          <svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <div class="flex justify-center -my-3 relative z-10 stagger-item">
-      <button onclick="flipSwap()" class="w-11 h-11 bg-gradient-to-br from-[#252B38] to-[#1E232F] rounded-2xl flex items-center justify-center border-4 border-[#131722] btn-press shadow-lg">
-        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v12M7 4L3 8M7 4l4 4M17 20V8M17 20l4-4M17 20l-4-4"/></svg>
-      </button>
-    </div>
-
-    <div class="bg-gradient-to-br from-[#1E232F] to-[#252B38] rounded-2xl p-4 mb-6 border border-gray-800 stagger-item">
-      <div class="flex justify-between items-center mb-2">
-        <span class="text-[13px] text-gray-400">You Receive</span>
-        <span class="text-[13px] text-gray-400" id="balance-to">Balance: 0.00 ETH</span>
-      </div>
-      <div class="flex justify-between items-center">
-        <input id="input-to" type="text" placeholder="0.0" readonly
-          class="bg-transparent text-[28px] font-bold w-full outline-none placeholder-gray-600 text-gray-300 px-1">
-        <button onclick="showToast('Список валют в разработке')" class="flex items-center gap-2 bg-[#131722] px-3 py-2 rounded-full border border-gray-800 btn-press ml-2">
-          <div id="icon-to" class="coin-logo-wrap w-6 h-6 rounded-full flex items-center justify-center"></div>
-          <span id="symbol-to" class="font-semibold text-[14px]">ETH</span>
-          <svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <div class="bg-[#1E232F] rounded-xl p-3 mb-6 border border-gray-800 stagger-item">
-      <div class="flex justify-between items-center mb-2">
-        <span class="text-[13px] text-gray-400">Rate</span>
-        <span id="rate-text" class="text-[13px] text-white font-medium">1 BTC ≈ 31.08 ETH</span>
-      </div>
-      <div class="flex justify-between items-center">
-        <span class="text-[13px] text-gray-400">Slippage Tolerance</span>
-        <span class="text-[13px] text-white font-medium">0.5%</span>
-      </div>
-    </div>
-
-    <button id="swap-btn" onclick="openModal('confirmSwap')" disabled class="btn-gradient-blue w-full py-4 rounded-2xl font-semibold text-[16px] btn-press stagger-item">
-      Review Swap
-    </button>
-  </div>
-</div>
-
-<!-- ================= ЭКРАН 4: MARKET ================= -->
-<div id="screen-futures" class="screen">
-  <div class="p-5 pt-8 pb-48">
-    <div class="flex justify-between items-center mb-4 stagger-item">
-      <h1 class="screen-title text-[24px] font-bold" style="letter-spacing: -0.02em;">Бесср.</h1>
-      <div class="flex gap-2">
-        <button onclick="openModal('history')" class="p-2.5 bg-[#1E232F] rounded-full text-gray-400 btn-press border border-gray-800/50">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-        </button>
-        <button onclick="openModal('marketSettings')" class="p-2.5 bg-[#1E232F] rounded-full text-gray-400 btn-press border border-gray-800/50">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <div class="mb-4 stagger-item">
-      <div class="input-field flex items-center gap-2 bg-[#1E232F] border border-gray-800 rounded-full px-4 py-2.5">
-        <svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-        <input id="market-search" type="text" placeholder="Поиск монеты..." class="bg-transparent outline-none text-[13px] w-full placeholder-gray-500">
-      </div>
-    </div>
-
-    <div class="flex gap-6 border-b border-gray-800 mb-5 stagger-item">
-      <button onclick="switchMarketTab('crypto')" id="tab-crypto" class="tab-filter active text-[14px] font-semibold">Криптовалюты</button>
-      <button onclick="switchMarketTab('stocks')" id="tab-stocks" class="tab-filter text-[14px] font-semibold">Акции</button>
-      <button onclick="switchMarketTab('commodities')" id="tab-commodities" class="tab-filter text-[14px] font-semibold">Товары</button>
-    </div>
-
-    <div id="market-crypto" class="market-section active"><div class="space-y-4" id="crypto-list"></div></div>
-    <div id="market-stocks" class="market-section"><div class="space-y-4" id="stocks-list"></div></div>
-    <div id="market-commodities" class="market-section"><div class="space-y-4" id="commodities-list"></div></div>
-  </div>
-
-  <div class="fixed-buttons">
-    <button onclick="openOrder('long')" class="btn-gradient-green flex-1 py-4 rounded-2xl font-semibold text-[16px] text-white flex items-center justify-center gap-2 btn-press">
-      Лонг <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-    </button>
-    <button onclick="openOrder('short')" class="btn-gradient-red flex-1 py-4 rounded-2xl font-semibold text-[16px] text-white flex items-center justify-center gap-2 btn-press">
-      Шорт <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-    </button>
-  </div>
-</div>
-
-<!-- ================= ЭКРАН 5: SETTINGS ================= -->
-<div id="screen-settings" class="screen">
-  <div class="p-5 pt-8">
-    <div class="flex justify-between items-center mb-6 stagger-item">
-      <h1 class="screen-title text-[24px] font-bold" style="letter-spacing: -0.02em;">Settings</h1>
-    </div>
-    <div class="space-y-3">
-      <div onclick="openModal('profile')" class="card-hover bg-gradient-to-br from-[#1E232F] to-[#252B38] p-4 rounded-2xl border border-gray-800 flex items-center gap-4 btn-press cursor-pointer stagger-item">
-        <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30">
-          <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+  <!-- ===== НАСТРОЙКИ ===== -->
+  <div class="screen" id="screen-settings">
+    <div class="header compact">
+      <div class="header-top">
+        <div class="back-btn" onclick="goTo('home')">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         </div>
-        <div class="flex-1">
-          <div class="font-semibold text-[15px]">Wallet 1</div>
-          <div class="text-[12px] text-gray-500 font-mono">0x7a23...f4d1</div>
-        </div>
-        <svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        <div class="header-title">Настройки</div>
+        <div class="header-spacer"></div>
       </div>
-      <div class="bg-[#1E232F] rounded-2xl border border-gray-800 overflow-hidden stagger-item">
-        <div onclick="openModal('security')" class="card-hover p-4 flex items-center justify-between border-b border-gray-800 btn-press cursor-pointer">
-          <div class="flex items-center gap-3">
-            <svg class="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            <span class="text-[15px] font-medium">Security</span>
-          </div>
-          <svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+    <div class="settings stagger">
+      <div class="setting-row">
+        <div>
+          <div class="label">Тёмная тема</div>
+          <div class="sub">Комфорт для глаз ночью</div>
         </div>
-        <div onclick="openModal('backup')" class="card-hover p-4 flex items-center justify-between border-b border-gray-800 btn-press cursor-pointer">
-          <div class="flex items-center gap-3">
-            <svg class="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
-            <span class="text-[15px] font-medium">Backup</span>
-          </div>
-          <svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-        </div>
-        <div onclick="openModal('help')" class="card-hover p-4 flex items-center justify-between btn-press cursor-pointer">
-          <div class="flex items-center gap-3">
-            <svg class="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
-            <span class="text-[15px] font-medium">Help Center</span>
-          </div>
-          <svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        <div class="switch" id="themeSwitch" onclick="toggleTheme()"></div>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="label">Баланс</div>
+          <div class="sub" id="balanceSetting">—</div>
         </div>
       </div>
+      <div class="setting-row">
+        <div>
+          <div class="label">Данные</div>
+          <div class="sub" id="storageInfo">—</div>
+        </div>
+      </div>
+      <button class="btn ghost" onclick="exportData()">Экспорт в JSON</button>
+      <button class="danger-btn" onclick="resetData()">Сбросить все данные</button>
+    </div>
+  </div>
+
+  <!-- ===== НАВИГАЦИЯ ===== -->
+  <div class="nav">
+    <div class="nav-item active" data-tab="home" onclick="goTo('home')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Главная</span>
+    </div>
+    <div class="nav-item" data-tab="transfer" onclick="goTo('transfer')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <span>Перевод</span>
+    </div>
+    <div class="nav-item" data-tab="chart" onclick="goTo('chart')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>График</span>
+    </div>
+    <div class="nav-item" data-tab="settings" onclick="goTo('settings')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Профиль</span>
     </div>
   </div>
 </div>
-
-<!-- ================= НИЖНЯЯ НАВИГАЦИЯ ================= -->
-<div class="bottom-nav fixed bottom-0 left-0 right-0 max-w-md mx-auto px-2 py-2 pb-5 flex justify-between items-center z-50">
-  <button onclick="switchScreen('wallet')" id="nav-wallet" class="nav-btn active">
-    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/><path d="M3 7h16M17 13h.01"/><path d="M21 7v10a2 2 0 01-2 2H5"/></svg>
-    <span class="text-[10px] font-medium">Wallet</span>
-  </button>
-  <button onclick="switchScreen('discover')" id="nav-discover" class="nav-btn">
-    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
-    <span class="text-[10px] font-medium">Discover</span>
-  </button>
-  <button onclick="switchScreen('swap')" id="nav-swap" class="nav-btn">
-    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 4L3 8M7 4l4 4M17 20V4M17 20l4-4M17 20l-4-4"/></svg>
-    <span class="text-[10px] font-medium">Swap</span>
-  </button>
-  <button onclick="switchScreen('futures')" id="nav-futures" class="nav-btn">
-    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
-    <span class="text-[10px] font-medium">Market</span>
-  </button>
-  <button onclick="switchScreen('settings')" id="nav-settings" class="nav-btn">
-    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-    <span class="text-[10px] font-medium">Settings</span>
-  </button>
-</div>
-
-<!-- ================= МОДАЛКА ================= -->
-<div id="modal-backdrop" class="modal-backdrop" onclick="if(event.target===this)closeModal()">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div id="modal-content" class="modal-content"></div>
-  </div>
-</div>
-
-<!-- ================= TOAST ================= -->
-<div id="toast" class="toast"></div>
 
 <script>
-// ============================================================
-// ЛОГОТИПЫ
-// ============================================================
-const LOGOS = {
-  BTC:     'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/bitcoin/info/logo.png',
-  ETH:     'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png',
-  BNB:     'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/smartchain/info/logo.png',
-  SOL:     'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/solana/info/logo.png',
-  ZEC:     'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/zcash/info/logo.png',
-  HYPE:    'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/hyperliquid/info/logo.png',
-  SP500:   'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/S%26P_500_logo.svg/240px-S%26P_500_logo.svg.png',
-  NVDA:    'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/NVIDIA_logo.svg/240px-NVIDIA_logo.svg.png',
-  INTC:    'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Intel-logo.svg/240px-Intel-logo.svg.png',
-  MU:      'https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Micron_Technology_logo.svg/240px-Micron_Technology_logo.svg.png',
-  SPCX:    'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/SpaceX_logo_black.svg/240px-SpaceX_logo_black.svg.png',
-  SKHX:    'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/SK_Hynix_logo.svg/240px-SK_Hynix_logo.svg.png',
-  SKHY:    'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/SK_Hynix_logo.svg/240px-SK_Hynix_logo.svg.png',
-  GOLD:    'https://cdn-icons-png.flaticon.com/512/1944/1944728.png',
-  SILVER:  'https://cdn-icons-png.flaticon.com/512/1944/1944668.png',
-  CL:      'https://cdn-icons-png.flaticon.com/512/3203/3203089.png',
-  BRENTOIL:'https://cdn-icons-png.flaticon.com/512/3203/3203089.png',
-  NATGAS:  'https://cdn-icons-png.flaticon.com/512/481/481483.png',
-  COPPER:  'https://cdn-icons-png.flaticon.com/512/2929/2929489.png',
-  CAKE:    'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/smartchain/assets/0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82/logo.png',
-  UNI:     'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984/logo.png',
-  AAVE:    'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9/logo.png',
-  OPENSEA: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x6B175474E89094C44Da98b954EedeAC495271d0F/logo.png'
+/* ========== ИКОНКИ ========== */
+const ICONS = {
+  cart: '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>',
+  wallet: '<path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>',
+  coffee: '<path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>',
+  film: '<rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/>',
+  car: '<path d="M5 17h14v-5l-2-5H7l-2 5v5z"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/>',
+  home: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+  heart: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
+  send: '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
+  inbox: '<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
 };
 
-// ============================================================
-// НАВИГАЦИЯ
-// ============================================================
-function switchScreen(screenName) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-' + screenName).classList.add('active');
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('nav-' + screenName).classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// ============================================================
-// БАЛАНС
-// ============================================================
-const RUB_PER_USDT = 80;
-let balanceInRub = true;
-const rubValue = 671713;
-const usdtValue = rubValue / RUB_PER_USDT;
-
-function formatNumber(num) { return num.toLocaleString('ru-RU', { maximumFractionDigits: 2 }); }
-function toggleBalance() {
-  balanceInRub = !balanceInRub;
-  const el = document.getElementById('balance-text');
-  el.style.animation = 'none';
-  void el.offsetWidth;
-  el.style.animation = 'balanceFlip 0.65s cubic-bezier(0.34, 1.56, 0.64, 1)';
-  el.textContent = balanceInRub ? `₽ ${formatNumber(rubValue)}` : `$ ${formatNumber(usdtValue)}`;
-  showToast(balanceInRub ? 'Показано в рублях' : 'Показано в USDT');
-}
-
-// ============================================================
-// ДАННЫЕ
-// ============================================================
-const MARKET_DATA = {
-  crypto: [
-    { sym: 'BTC', name: 'BTC', txt: '₿', img: LOGOS.BTC, vol: 'Об. $2.51B', price: '$83,960', change: '-2.38%', up: false, lev: '40x' },
-    { sym: 'ETH', name: 'ETH', txt: 'Ξ', img: LOGOS.ETH, vol: 'Об. $1.01B', price: '$2,609.6', change: '-3.91%', up: false, lev: '25x' },
-    { sym: 'HYPE', name: 'HYPE', txt: 'H', img: LOGOS.HYPE, vol: 'Об. $482.25M', price: '$90.590', change: '-2.98%', up: false, lev: '10x' },
-    { sym: 'ZEC', name: 'ZEC', txt: 'Z', img: LOGOS.ZEC, vol: 'Об. $304.26M', price: '$1,320.0', change: '-2.28%', up: false, lev: '10x' },
-    { sym: 'SP500', name: 'SP500', txt: 'S', img: LOGOS.SP500, vol: 'Об. $232.69M', price: '$7,818.9', change: '+0.36%', up: true, lev: '50x' },
-    { sym: 'SOL', name: 'SOL', txt: 'S', img: LOGOS.SOL, vol: 'Об. $197.97M', price: '$118.24', change: '-1.88%', up: false, lev: '20x' },
-  ],
-  stocks: [
-    { sym: 'SKHX', name: 'SKHX', txt: 'SKHX', img: LOGOS.SKHX, vol: 'Об. $183.23M', price: '$1,288.0', change: '-3.11%', up: false, lev: '10x' },
-    { sym: 'SPCX', name: 'SPCX', txt: 'SPCX', img: LOGOS.SPCX, vol: 'Об. $176.68M', price: '$168.49', change: '-2.47%', up: false, lev: '20x' },
-    { sym: 'SKHY', name: 'SKHY', txt: 'SKHY', img: LOGOS.SKHY, vol: 'Об. $72.71M', price: '$181.93', change: '-4.24%', up: false, lev: '10x' },
-    { sym: 'MU', name: 'MU', txt: 'MU', img: LOGOS.MU, vol: 'Об. $54.99M', price: '$1,030.0', change: '-2.63%', up: false, lev: '10x' },
-    { sym: 'NVDA', name: 'NVDA', txt: 'N', img: LOGOS.NVDA, vol: 'Об. $52.28M', price: '$239.55', change: '-0.46%', up: false, lev: '20x' },
-    { sym: 'INTC', name: 'INTC', txt: 'intel', img: LOGOS.INTC, vol: 'Об. $41.58M', price: '$114.81', change: '-0.94%', up: false, lev: '10x' },
-  ],
-  commodities: [
-    { sym: 'CL', name: 'CL', txt: 'CL', img: LOGOS.CL, vol: 'Об. $184.80M', price: '$89.478', change: '+1.66%', up: true, lev: '20x' },
-    { sym: 'SILVER', name: 'SILVER', txt: 'Ag', img: LOGOS.SILVER, vol: 'Об. $162.69M', price: '$60.370', change: '-1.22%', up: false, lev: '25x' },
-    { sym: 'BRENTOIL', name: 'BRENTOIL', txt: 'OIL', img: LOGOS.BRENTOIL, vol: 'Об. $157.33M', price: '$100.88', change: '+1.83%', up: true, lev: '20x' },
-    { sym: 'GOLD', name: 'GOLD', txt: 'Au', img: LOGOS.GOLD, vol: 'Об. $67.13M', price: '$4,126.5', change: '-0.67%', up: false, lev: '25x' },
-    { sym: 'NATGAS', name: 'NATGAS', txt: 'GAS', img: LOGOS.NATGAS, vol: 'Об. $27.93M', price: '$3.1962', change: '+3.69%', up: true, lev: '10x' },
-    { sym: 'COPPER', name: 'COPPER', txt: 'Cu', img: LOGOS.COPPER, vol: 'Об. $4.55M', price: '$6.6411', change: '-0.31%', up: false, lev: '20x' },
-  ],
+/* ========== ДАННЫЕ ========== */
+const DEFAULT_DATA = {
+  balance: 124580,
+  transactions: [], // ИСТОРИЯ ПОЛНОСТЬЮ ОЧИЩЕНА
+  theme: 'light',
+  filter: 'all',
 };
 
-const WALLET_TOKENS = [
-  { sym: 'BTC', name: 'Bitcoin', img: LOGOS.BTC, txt: '₿', price: '$83 964,20', change: '-2.35%', up: false },
-  { sym: 'ETH', name: 'Ethereum', img: LOGOS.ETH, txt: 'Ξ', price: '$2 610,29', change: '-3.84%', up: false },
-  { sym: 'BNB', name: 'BNB Smart Chain', img: LOGOS.BNB, txt: 'B', price: '$773,34', change: '-1.13%', up: false },
+const CATEGORY_COLORS = {
+  'Продукты':     '#6c5ce7',
+  'Кафе':         '#fd79a8',
+  'Развлечения':  '#fdcb6e',
+  'Транспорт':    '#0984e3',
+  'Здоровье':     '#00b894',
+  'Жильё':        '#e17055',
+  'Доход':        '#00cec9',
+  'Другое':       '#a29bfe',
+};
+
+const BANKS = {
+  tbank: { name: 'Т-Банк',    logo: 'tbank', short: 'Т' },
+  sber:  { name: 'СберБанк',  logo: 'sber',  short: 'С' },
+  ozon:  { name: 'Озон Банк', logo: 'ozon',  short: 'О' },
+};
+
+const OTHER_BANKS = [
+  { id: 'alfa',   name: 'Альфа-Банк',     short: 'А', color: '#ef3124' },
+  { id: 'vtb',    name: 'ВТБ',            short: 'В', color: '#009fdf' },
+  { id: 'raif',   name: 'Райффайзен',     short: 'Р', color: '#ffd900' },
+  { id: 'gazprom',name: 'Газпромбанк',    short: 'Г', color: '#0066b3' },
+  { id: 'rossel', name: 'Россельхозбанк', short: 'Р', color: '#00843d' },
+  { id: 'psb',    name: 'ПСБ',            short: 'П', color: '#00488e' },
+  { id: 'sovcom', name: 'Совкомбанк',     short: 'С', color: '#ffd200' },
+  { id: 'mkb',    name: 'МКБ',            short: 'М', color: '#002f6c' },
 ];
 
-const DAPPS = [
-  { name: 'PancakeSwap', cat: 'DEX Exchange', img: LOGOS.CAKE, color: '#F0B90B' },
-  { name: 'Uniswap', cat: 'DEX Exchange', img: LOGOS.UNI, color: '#FF007A' },
-  { name: 'Aave', cat: 'Lending', img: LOGOS.AAVE, color: '#B6509E' },
-  { name: 'OpenSea', cat: 'NFT Market', img: LOGOS.OPENSEA, color: '#2081E2' },
-];
+/* ========== ХРАНИЛИЩЕ ========== */
+const STORAGE_KEY = 'mybank_data_v2';
+let state = loadState();
 
-// ============================================================
-// РЕНДЕР ИКОНКИ
-// ============================================================
-function renderCoinIcon(item, size = 'w-10 h-10') {
-  const fallback = `<div class="logo-fallback hidden absolute inset-0 items-center justify-center font-bold text-[13px] text-white">${item.txt || item.sym[0]}</div>`;
-  const img = item.img 
-    ? `<img src="${item.img}" class="coin-logo" alt="${item.sym}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">`
-    : '';
-  return `
-    <div class="coin-logo-wrap coin-icon ${size} rounded-full flex items-center justify-center">
-      ${img}
-      ${fallback}
-    </div>
-  `;
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) { console.warn(e); }
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
-function renderMarketItem(item, index) {
-  const sparkline = item.up
-    ? `<path d="M0 14 L10 12 L15 8 L20 10 L25 5 L30 7 L35 3 L40 5" class="sparkline-up"/>`
-    : `<path d="M0 5 L10 4 L20 8 L25 6 L30 15 L40 12" class="sparkline-down"/>`;
-  const changeColor = item.up ? 'text-[#10B981]' : 'text-[#EF4444]';
+/* ========== НАВИГАЦИЯ С АНИМАЦИЕЙ ========== */
+const TAB_ORDER = ['home', 'transfer', 'chart', 'settings'];
+let currentTab = 'home';
+let isAnimating = false;
 
-  return `
-    <div onclick="openCoinDetails('${item.sym}')" class="flex justify-between items-center btn-press card-hover cursor-pointer stagger-item rounded-xl px-2 -mx-2 py-2" style="animation-delay: ${index * 0.04}s">
-      <div class="flex items-center gap-3">
-        ${renderCoinIcon(item)}
-        <div>
-          <div class="font-semibold text-[14px] flex items-center gap-2">${item.name} <span class="text-[10px] bg-[#2A303C] px-1.5 py-0.5 rounded text-gray-400">${item.lev}</span></div>
-          <span class="text-[11px] text-gray-500">${item.vol}</span>
-        </div>
-      </div>
-      <div class="flex items-center gap-3">
-        <svg width="40" height="15" viewBox="0 0 40 15">${sparkline}</svg>
-        <div class="text-right w-[70px]">
-          <div class="font-semibold text-[14px]">${item.price}</div>
-          <div class="text-[11px] ${changeColor}">${item.change}</div>
-        </div>
-      </div>
-    </div>
-  `;
-}
+function goTo(tab, direction) {
+  if (tab === currentTab || isAnimating) return;
+  isAnimating = true;
+  const fromIdx = TAB_ORDER.indexOf(currentTab);
+  const toIdx = TAB_ORDER.indexOf(tab);
+  const dir = direction || (toIdx > fromIdx ? 'forward' : 'backward');
 
-function renderAllMarkets(filter = '') {
-  ['crypto', 'stocks', 'commodities'].forEach(cat => {
-    const list = document.getElementById(cat + '-list');
-    const data = MARKET_DATA[cat].filter(i => 
-      i.sym.toLowerCase().includes(filter.toLowerCase()) || 
-      i.name.toLowerCase().includes(filter.toLowerCase())
-    );
-    list.innerHTML = data.length > 0 
-      ? data.map((item, i) => renderMarketItem(item, i)).join('') 
-      : '<div class="text-center text-gray-500 text-sm py-8">Ничего не найдено</div>';
+  const currentEl = document.getElementById('screen-' + currentTab);
+  const nextEl = document.getElementById('screen-' + tab);
+
+  // подготовка следующего экрана
+  nextEl.classList.remove('exit-left', 'exit-right');
+  nextEl.style.transform = dir === 'forward' ? 'translateX(30px) scale(0.98)' : 'translateX(-30px) scale(0.98)';
+  nextEl.style.opacity = '0';
+  nextEl.classList.add('active');
+  // force reflow
+  void nextEl.offsetWidth;
+  nextEl.style.transform = '';
+  nextEl.style.opacity = '';
+
+  // уход текущего
+  currentEl.classList.remove('active');
+  currentEl.classList.add(dir === 'forward' ? 'exit-left' : 'exit-right');
+
+  setTimeout(() => {
+    currentEl.classList.remove('exit-left', 'exit-right');
+    isAnimating = false;
+  }, 380);
+
+  currentTab = tab;
+
+  // синхронизируем навигацию
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.dataset.tab === tab);
   });
+
+  if (tab === 'chart') renderChart();
+  if (tab === 'settings') updateSettings();
 }
 
-function renderWalletTokens() {
-  const list = document.getElementById('wallet-list');
-  list.innerHTML = WALLET_TOKENS.map((t, i) => `
-    <div onclick="openCoinDetails('${t.sym}')" class="flex justify-between items-center py-3 border-b border-gray-800/50 btn-press card-hover cursor-pointer stagger-item rounded-xl px-2 -mx-2" style="animation-delay: ${i * 0.08}s">
-      <div class="flex items-center gap-3">
-        ${renderCoinIcon(t)}
-        <div>
-          <div class="font-semibold text-[15px]">${t.name}</div>
-          <div class="text-[11px] text-gray-500">${t.sym}</div>
-        </div>
-      </div>
-      <div class="text-right">
-        <div class="font-semibold text-[15px]">${t.price}</div>
-        <div class="text-[13px] ${t.up ? 'text-[#10B981]' : 'text-[#EF4444]'}">${t.change}</div>
-      </div>
-    </div>
-  `).join('');
-}
+/* ========== SWIPE ========== */
+let touchStartX = 0;
+let touchStartY = 0;
+let touchStartTime = 0;
 
-function renderDapps() {
-  const grid = document.getElementById('dapp-grid');
-  grid.innerHTML = DAPPS.map((d, i) => `
-    <div onclick="openDApp('${d.name}','${d.cat}','${d.color}')" class="card-hover bg-gradient-to-br from-[#1E232F] to-[#252B38] p-4 rounded-2xl border border-gray-800 btn-press cursor-pointer stagger-item" style="animation-delay: ${i*0.06}s">
-      <div class="coin-logo-wrap w-10 h-10 rounded-full flex items-center justify-center mb-3 shadow-lg">
-        <img src="${d.img}" class="coin-logo" alt="${d.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-        <div class="logo-fallback hidden absolute inset-0 items-center justify-center font-bold text-[13px] text-white">${d.name[0]}</div>
-      </div>
-      <div class="font-semibold text-[14px]">${d.name}</div>
-      <div class="text-[12px] text-gray-500">${d.cat}</div>
-    </div>
-  `).join('');
-}
+document.getElementById('phone').addEventListener('touchstart', (e) => {
+  if (e.target.closest('canvas') || e.target.closest('.filter-bar') || e.target.closest('.bank-list')) return;
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+  touchStartTime = Date.now();
+}, { passive: true });
 
-function switchMarketTab(cat) {
-  document.querySelectorAll('.market-section').forEach(s => s.classList.remove('active'));
-  document.getElementById('market-' + cat).classList.add('active');
-  document.querySelectorAll('.tab-filter').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + cat).classList.add('active');
-}
+document.getElementById('phone').addEventListener('touchend', (e) => {
+  if (!touchStartX) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  const dt = Date.now() - touchStartTime;
 
-document.getElementById('market-search').addEventListener('input', (e) => {
-  renderAllMarkets(e.target.value);
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && dt < 500) {
+    const idx = TAB_ORDER.indexOf(currentTab);
+    if (dx < 0 && idx < TAB_ORDER.length - 1) goTo(TAB_ORDER[idx + 1], 'forward');
+    else if (dx > 0 && idx > 0) goTo(TAB_ORDER[idx - 1], 'backward');
+  }
+  touchStartX = 0;
 });
 
-// ============================================================
-// МОДАЛКИ
-// ============================================================
-const modalContent = document.getElementById('modal-content');
-const modalBackdrop = document.getElementById('modal-backdrop');
+/* ========== ОТРИСОВКА ГЛАВНОЙ ========== */
+function renderHome() {
+  document.getElementById('balanceEl').textContent = fmtMoney(state.balance);
 
-const MODAL_TEMPLATES = {
-  history: () => `
-    <h2 class="text-[18px] font-bold mb-4">История транзакций</h2>
-    <div class="space-y-3">
-      ${[
-        { type: 'Получено', amt: '+0.0024 BTC', usd: '≈ $201.50', date: 'Сегодня, 14:32', up: true, icon: 'down' },
-        { type: 'Отправлено', amt: '-0.15 ETH', usd: '≈ $391.55', date: 'Вчера, 09:15', up: false, icon: 'up' },
-        { type: 'Свап', amt: '12 BNB', usd: '≈ $9,280', date: '28 ноя, 18:44', up: true, icon: 'swap' },
-        { type: 'Получено', amt: '+500 USDT', usd: '≈ 40 000 ₽', date: '27 ноя, 11:20', up: true, icon: 'down' },
-      ].map((t, i) => `
-        <div class="stagger-item flex justify-between items-center py-3 border-b border-gray-800 last:border-0" style="animation-delay: ${i * 0.06}s">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full ${t.up ? 'bg-green-900/30 text-[#10B981]' : 'bg-red-900/30 text-[#EF4444]'} flex items-center justify-center">
-              ${t.icon === 'down' ? '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>' 
-              : t.icon === 'up' ? '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>'
-              : '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 4L3 8M7 4l4 4M17 20V4M17 20l4-4M17 20l-4-4"/></svg>'}
-            </div>
-            <div>
-              <div class="font-semibold text-[14px]">${t.type}</div>
-              <div class="text-[11px] text-gray-500">${t.date}</div>
-            </div>
-          </div>
-          <div class="text-right">
-            <div class="font-semibold text-[14px] ${t.up ? 'text-[#10B981]' : 'text-[#EF4444]'}">${t.amt}</div>
-            <div class="text-[11px] text-gray-500">${t.usd}</div>
-          </div>
+  // фильтр-бар
+  const cats = ['all', ...new Set(state.transactions.map(t => t.category))];
+  const filterBar = document.getElementById('filterBar');
+  filterBar.innerHTML = cats.map(c => {
+    const label = c === 'all' ? 'Все' : c;
+    const active = state.filter === c ? 'active' : '';
+    return `<div class="chip ${active}" onclick="setFilter('${c}')">${escapeHtml(label)}</div>`;
+  }).join('');
+
+  // транзакции
+  const filtered = state.filter === 'all'
+    ? state.transactions
+    : state.transactions.filter(t => t.category === state.filter);
+
+  document.getElementById('txCount').textContent = filtered.length
+    ? filtered.length + ' шт.'
+    : '';
+
+  const list = document.getElementById('txList');
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="big-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS.inbox}</svg>
         </div>
-      `).join('')}
-    </div>
-  `,
-  scanner: () => `
-    <h2 class="text-[18px] font-bold mb-4 text-center">Сканировать QR</h2>
-    <div class="bg-[#131722] rounded-2xl border-2 border-dashed border-gray-700 flex items-center justify-center" style="height: 260px; position: relative; overflow: hidden;">
-      <div class="text-gray-500 text-center relative z-10">
-        <svg class="w-16 h-16 mx-auto mb-3 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2M7 12h10"/></svg>
-        <div class="text-sm">Наведите камеру на QR-код</div>
+        <div style="font-weight:600; color:var(--text-main); margin-bottom:4px;">Пока пусто</div>
+        <div>Здесь появятся ваши операции</div>
       </div>
-      <div style="position: absolute; width: 200px; height: 200px; border: 3px solid #4F46E5; border-radius: 20px; box-shadow: 0 0 30px rgba(79,70,229,0.5);">
-        <div style="position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, #4F46E5, transparent); animation: scanLine 2s infinite;"></div>
+    `;
+    return;
+  }
+  list.innerHTML = filtered.map(tx => `
+    <div class="tx">
+      <div class="tx-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[tx.icon] || ICONS.cart}</svg>
       </div>
-    </div>
-    <style>@keyframes scanLine { 0%,100% { top: 0; } 50% { top: 100%; } }</style>
-    <button onclick="closeModal()" class="w-full mt-4 py-3 bg-[#2A303C] rounded-xl font-semibold btn-press">Отмена</button>
-  `,
-  receive: () => `
-    <h2 class="text-[18px] font-bold mb-2 text-center">Получить криптовалюту</h2>
-    <p class="text-[13px] text-gray-500 text-center mb-5">Отправьте средства на этот адрес</p>
-    <div class="bg-white p-4 rounded-2xl flex items-center justify-center mb-4" style="height: 200px;">
-      <svg viewBox="0 0 100 100" class="w-full h-full">
-        <rect width="100" height="100" fill="white"/>
-        ${Array.from({length: 100}).map((_, i) => {
-          const x = (i % 10) * 10;
-          const y = Math.floor(i / 10) * 10;
-          const corner = (x < 30 && y < 30) || (x > 60 && y < 30) || (x < 30 && y > 60);
-          return (Math.random() > 0.5 || corner) ? `<rect x="${x}" y="${y}" width="10" height="10" fill="#131722"/>` : '';
-        }).join('')}
-      </svg>
-    </div>
-    <div class="bg-[#131722] rounded-xl p-3 mb-3 flex justify-between items-center">
-      <span class="text-[12px] text-gray-400 font-mono">0x7a23...f4d1b8c9</span>
-      <button onclick="showToast('Адрес скопирован'); closeModal()" class="text-[#4F46E5] font-semibold text-[13px] btn-press">Копировать</button>
-    </div>
-  `,
-  deposit: () => `
-    <h2 class="text-[18px] font-bold mb-2">Депозит с Binance</h2>
-    <p class="text-[13px] text-gray-500 mb-4">Введите сумму для пополнения</p>
-    <div class="bg-[#131722] rounded-2xl p-4 mb-4">
-      <input type="text" placeholder="0.00" class="input-field bg-transparent text-[28px] font-bold w-full outline-none placeholder-gray-600">
-      <div class="flex gap-2 mt-3">
-        ${['100', '500', '1000', 'MAX'].map(v => `<button onclick="showToast('${v} USDT'); closeModal()" class="flex-1 py-1.5 bg-[#1E232F] rounded-lg text-[12px] btn-press">${v}</button>`).join('')}
+      <div class="tx-info">
+        <div class="name">${escapeHtml(tx.name)}</div>
+        <div class="date">${escapeHtml(tx.date)}</div>
       </div>
+      <div class="tx-amount ${tx.amount > 0 ? 'in' : ''}">${tx.amount > 0 ? '+' : ''}${fmtMoney(tx.amount)}</div>
     </div>
-    <button onclick="showToast('Заявка на депозит отправлена'); closeModal()" class="btn-gradient-blue w-full py-4 rounded-2xl font-semibold btn-press">Продолжить</button>
-  `,
-  applepay: () => `
-    <h2 class="text-[18px] font-bold mb-2">Купить криптовалюту</h2>
-    <p class="text-[13px] text-gray-500 mb-4">Оплата через Apple Pay</p>
-    <div class="grid grid-cols-2 gap-3 mb-4">
-      ${[['50', '$50'], ['100', '$100'], ['500', '$500'], ['1000', '$1000']].map(([v, l], i) => `<button onclick="showToast('Выбрано ${l}'); closeModal()" class="bg-[#131722] py-6 rounded-xl font-semibold text-[16px] btn-press stagger-item" style="animation-delay: ${i*0.06}s">${l}</button>`).join('')}
-    </div>
-    <button onclick="showToast('Открывается Apple Pay...'); closeModal()" class="w-full bg-white text-black py-4 rounded-2xl font-semibold btn-press"> Pay</button>
-  `,
-  confirmSwap: () => {
-    const from = document.getElementById('input-from').value || '0';
-    const to = document.getElementById('input-to').value || '0';
-    const fromSym = document.getElementById('symbol-from').textContent;
-    const toSym = document.getElementById('symbol-to').textContent;
+  `).join('');
+}
+
+function setFilter(cat) {
+  state.filter = cat;
+  saveState();
+  renderHome();
+}
+
+/* ========== ФОРМАТИРОВАНИЕ ========== */
+function fmtMoney(n) {
+  return new Intl.NumberFormat('ru-RU').format(Math.abs(n)) + ' ₽';
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+/* ========== ПЕРЕВОД ========== */
+const phoneInput = document.getElementById('phoneInput');
+const amountInput = document.getElementById('amountInput');
+const commentInput = document.getElementById('commentInput');
+const bankSearch = document.getElementById('bankSearch');
+const phoneErr = document.getElementById('phoneErr');
+const amountErr = document.getElementById('amountErr');
+const bankErr = document.getElementById('bankErr');
+const transferBtn = document.getElementById('transferBtn');
+
+let selectedBank = null;
+
+// Маска телефона +7 (___) ___-__-__
+phoneInput.addEventListener('input', (e) => {
+  let v = e.target.value.replace(/\D/g, '');
+  if (v.startsWith('8')) v = '7' + v.slice(1);
+  if (!v.startsWith('7')) v = '7' + v;
+  v = v.slice(0, 11);
+
+  let out = '+7';
+  if (v.length > 1) out += ' (' + v.slice(1, 4);
+  if (v.length >= 4) out += ') ' + v.slice(4, 7);
+  if (v.length >= 7) out += '-' + v.slice(7, 9);
+  if (v.length >= 9) out += '-' + v.slice(9, 11);
+  e.target.value = out;
+  validatePhone();
+});
+
+amountInput.addEventListener('input', (e) => {
+  e.target.value = e.target.value.replace(/\D/g, '');
+  validateAmount();
+});
+
+bankSearch.addEventListener('input', renderBankSearch);
+
+function validatePhone() {
+  const digits = phoneInput.value.replace(/\D/g, '');
+  if (!phoneInput.value || digits.length === 1) {
+    phoneInput.classList.remove('error');
+    phoneErr.textContent = '';
+    return null;
+  }
+  if (digits.length !== 11) {
+    phoneInput.classList.add('error');
+    phoneErr.textContent = 'Введите номер полностью';
+    return false;
+  }
+  phoneInput.classList.remove('error');
+  phoneErr.textContent = '';
+  return true;
+}
+
+function validateAmount() {
+  const v = parseInt(amountInput.value || '0', 10);
+  if (!amountInput.value) {
+    amountInput.classList.remove('error');
+    amountErr.textContent = '';
+    return null;
+  }
+  if (v <= 0) {
+    amountInput.classList.add('error');
+    amountErr.textContent = 'Сумма должна быть больше 0';
+    return false;
+  }
+  if (v > state.balance) {
+    amountInput.classList.add('error');
+    amountErr.textContent = 'Недостаточно средств';
+    return false;
+  }
+  amountInput.classList.remove('error');
+  amountErr.textContent = '';
+  return true;
+}
+
+function selectBank(id) {
+  selectedBank = id;
+  document.querySelectorAll('#bankList .bank-item').forEach(el => {
+    el.classList.toggle('selected', el.dataset.bank === id);
+  });
+  document.querySelectorAll('#bankSearchResults .bank-item').forEach(el => {
+    el.classList.toggle('selected', el.dataset.bank === id);
+  });
+  bankErr.textContent = '';
+}
+
+function renderBankSearch() {
+  const q = bankSearch.value.trim().toLowerCase();
+  const wrap = document.getElementById('bankSearchResults');
+  if (!q) { wrap.innerHTML = ''; return; }
+  const found = OTHER_BANKS.filter(b => b.name.toLowerCase().includes(q));
+  if (!found.length) {
+    wrap.innerHTML = `<div style="padding:12px 4px; font-size:12px; color:var(--text-muted);">Ничего не найдено</div>`;
+    return;
+  }
+  wrap.innerHTML = found.map(b => {
+    const isSel = selectedBank === b.id;
     return `
-      <h2 class="text-[18px] font-bold mb-4 text-center">Подтверждение обмена</h2>
-      <div class="bg-[#131722] rounded-2xl p-4 mb-4 space-y-3">
-        <div class="flex justify-between items-center">
-          <span class="text-[13px] text-gray-400">Вы платите</span>
-          <span class="font-semibold">${from} ${fromSym}</span>
+      <div class="bank-item ${isSel ? 'selected' : ''}" data-bank="${b.id}" onclick="selectBank('${b.id}')">
+        <div class="bank-logo" style="background:${b.color};">${b.short}</div>
+        <div class="bank-info">
+          <div class="name">${escapeHtml(b.name)}</div>
+          <div class="sub">Перевод по СБП</div>
         </div>
-        <div class="flex justify-between items-center">
-          <span class="text-[13px] text-gray-400">Вы получаете</span>
-          <span class="font-semibold text-[#10B981]">${to} ${toSym}</span>
+        <div class="bank-check">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
-        <div class="border-t border-gray-800 pt-3 flex justify-between items-center">
-          <span class="text-[13px] text-gray-400">Комиссия сети</span>
-          <span class="font-semibold text-[13px]">≈ $1.24</span>
-        </div>
-      </div>
-      <div class="flex gap-3">
-        <button onclick="closeModal()" class="flex-1 bg-[#2A303C] py-4 rounded-2xl font-semibold btn-press">Отмена</button>
-        <button onclick="showToast('Обмен выполнен'); closeModal()" class="btn-gradient-blue flex-1 py-4 rounded-2xl font-semibold btn-press">Подтвердить</button>
       </div>
     `;
-  },
-  staking: () => `
-    <h2 class="text-[18px] font-bold mb-4">Стейкинг</h2>
-    <div class="space-y-3">
-      ${[
-        { name: 'USDT Flexible', apy: '8.5%', lock: 'Без блокировки' },
-        { name: 'USDC 30 дней', apy: '15.2%', lock: '30 дней' },
-        { name: 'ETH 90 дней', apy: '22.0%', lock: '90 дней' },
-        { name: 'BTC 180 дней', apy: '35.0%', lock: '180 дней' },
-        { name: 'Trust Vault', apy: '70.0%', lock: '365 дней' },
-      ].map((s, i) => `
-        <div onclick="showToast('Выбрано: ${s.name}'); closeModal()" class="stagger-item bg-[#131722] p-4 rounded-xl flex justify-between items-center btn-press cursor-pointer" style="animation-delay: ${i*0.06}s">
-          <div>
-            <div class="font-semibold text-[14px]">${s.name}</div>
-            <div class="text-[11px] text-gray-500">${s.lock}</div>
-          </div>
-          <div class="text-right">
-            <div class="text-[#10B981] font-bold text-[16px]">${s.apy}</div>
-            <div class="text-[10px] text-gray-500">APY</div>
-          </div>
-        </div>
-      `).join('')}
-    </div>
-  `,
-  marketSettings: () => `
-    <h2 class="text-[18px] font-bold mb-4">Настройки торговли</h2>
-    <div class="space-y-4">
-      <div>
-        <div class="text-[13px] text-gray-400 mb-2">Плечо по умолчанию</div>
-        <div class="flex gap-2">
-          ${['1x', '5x', '10x', '20x', '50x'].map((l, i) => `<button onclick="document.querySelectorAll('.lev-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active'); showToast('Плечо: ${l}')" class="lev-btn flex-1 py-2 bg-[#131722] rounded-lg text-[13px] font-semibold ${i===2?'active':''}">${l}</button>`).join('')}
-        </div>
-      </div>
-      <div>
-        <div class="text-[13px] text-gray-400 mb-2">Тип ордера</div>
-        <div class="flex gap-2">
-          ${['Market', 'Limit', 'Stop'].map((t, i) => `<button onclick="document.querySelectorAll('.order-type-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active'); showToast('Тип: ${t}')" class="order-type-btn lev-btn flex-1 py-2 bg-[#131722] rounded-lg text-[13px] font-semibold ${i===0?'active':''}">${t}</button>`).join('')}
-        </div>
-      </div>
-    </div>
-    <button onclick="closeModal()" class="w-full mt-5 py-3 bg-[#2A303C] rounded-xl font-semibold btn-press">Сохранить</button>
-  `,
-  profile: () => `
-    <h2 class="text-[18px] font-bold mb-4">Профиль</h2>
-    <div class="flex items-center gap-4 mb-5">
-      <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30">
-        <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      </div>
-      <div>
-        <div class="font-bold text-[16px]">Wallet 1</div>
-        <div class="text-[12px] text-gray-500 font-mono">0x7a23...f4d1b8c9</div>
-      </div>
-    </div>
-    <div class="space-y-2">
-      <button onclick="showToast('Открывается эксплорер')" class="w-full bg-[#131722] py-3 rounded-xl text-[14px] font-medium btn-press text-left px-4">Смотреть в эксплорере</button>
-      <button onclick="showToast('Копируется адрес'); closeModal()" class="w-full bg-[#131722] py-3 rounded-xl text-[14px] font-medium btn-press text-left px-4">Скопировать адрес</button>
-    </div>
-  `,
-  security: () => `
-    <h2 class="text-[18px] font-bold mb-4">Безопасность</h2>
-    <div class="space-y-3">
-      <div class="bg-[#131722] p-4 rounded-xl flex justify-between items-center">
-        <div>
-          <div class="font-semibold text-[14px]">Face ID / Touch ID</div>
-          <div class="text-[11px] text-gray-500">Биометрическая защита</div>
-        </div>
-        <div class="w-11 h-6 bg-[#4F46E5] rounded-full flex items-center px-0.5" onclick="showToast('Изменено')">
-          <div class="w-5 h-5 bg-white rounded-full ml-auto"></div>
-        </div>
-      </div>
-      <div class="bg-[#131722] p-4 rounded-xl flex justify-between items-center">
-        <div>
-          <div class="font-semibold text-[14px]">PIN-код</div>
-          <div class="text-[11px] text-gray-500">Включён</div>
-        </div>
-        <button onclick="showToast('Смена PIN-кода')" class="text-[#4F46E5] text-[13px] font-semibold btn-press">Изменить</button>
-      </div>
-    </div>
-  `,
-  backup: () => `
-    <h2 class="text-[18px] font-bold mb-4">Резервная копия</h2>
-    <div class="bg-yellow-900/20 border border-yellow-700/40 rounded-xl p-4 mb-4">
-      <div class="text-[13px] text-yellow-500">⚠️ Никогда не делитесь seed-фразой.</div>
-    </div>
-    <div class="bg-[#131722] rounded-xl p-4 mb-4">
-      <div class="grid grid-cols-3 gap-2">
-        ${['abandon','ability','able','about','above','absent','absorb','abstract','absurd','abuse','access','accident'].map((w, i) => `<div class="bg-[#1E232F] p-2 rounded-lg text-center stagger-item" style="animation-delay: ${i*0.03}s"><div class="text-[10px] text-gray-500">${i+1}</div><div class="text-[12px] font-mono">${w}</div></div>`).join('')}
-      </div>
-    </div>
-    <button onclick="showToast('Скопировано в буфер'); closeModal()" class="btn-gradient-blue w-full py-4 rounded-2xl font-semibold btn-press">Копировать фразу</button>
-  `,
-  help: () => `
-    <h2 class="text-[18px] font-bold mb-4">Помощь</h2>
-    <div class="space-y-3">
-      ${['Как восстановить кошелёк?','Что такое seed-фраза?','Как настроить комиссии?','Как работает стейкинг?'].map((q, i) => `<div onclick="showToast('Открывается статья'); closeModal()" class="stagger-item bg-[#131722] p-4 rounded-xl text-[14px] font-medium btn-press cursor-pointer flex justify-between items-center" style="animation-delay: ${i*0.06}s">${q}<svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>`).join('')}
-    </div>
-  `,
-};
+  }).join('');
+}
 
-function openModal(type) {
-  if (MODAL_TEMPLATES[type]) {
-    modalContent.innerHTML = MODAL_TEMPLATES[type]();
-  } else {
-    modalContent.innerHTML = `
-      <h2 class="text-[18px] font-bold mb-2">${type}</h2>
-      <p class="text-gray-400 text-[14px]">Скоро появится</p>
-    `;
+transferBtn.addEventListener('click', () => {
+  const pOk = validatePhone();
+  const aOk = validateAmount();
+
+  if (!selectedBank) {
+    bankErr.textContent = 'Выберите банк получателя';
+    return;
   }
-  
-  // Задержка 60ms, чтобы кнопка успела "пружинить"
-  setTimeout(() => {
-    modalBackdrop.classList.add('show');
-  }, 60);
-}
 
-function closeModal() {
-  modalBackdrop.classList.remove('show');
-  setTimeout(() => {
-    modalContent.innerHTML = '';
-  }, 400);
-}
-
-// ============================================================
-// ДЕТАЛИ МОНЕТЫ
-// ============================================================
-function openCoinDetails(symbol) {
-  let coin = null;
-  for (const cat in MARKET_DATA) {
-    const found = MARKET_DATA[cat].find(c => c.sym === symbol);
-    if (found) { coin = found; break; }
+  if (pOk === false || aOk === false) return;
+  if (pOk === null || aOk === null) {
+    showToast('Заполните все поля', 'error');
+    return;
   }
-  if (!coin) coin = WALLET_TOKENS.find(t => t.sym === symbol);
-  if (!coin) return;
 
-  const upPath = 'M0 80 L20 70 L40 75 L60 55 L80 60 L100 40 L120 50 L140 30 L160 35 L180 15 L200 20';
-  const downPath = 'M0 20 L20 25 L40 30 L60 45 L80 40 L100 60 L120 55 L140 75 L160 70 L180 85 L200 90';
-  const path = coin.up ? upPath : downPath;
-  const color = coin.up ? '#10B981' : '#EF4444';
+  const amount = parseInt(amountInput.value, 10);
+  const bankName = BANKS[selectedBank]?.name
+    || OTHER_BANKS.find(b => b.id === selectedBank)?.name
+    || 'Банк';
+  const phoneMask = phoneInput.value;
+  const comment = commentInput.value.trim();
 
-  modalContent.innerHTML = `
-    <div class="flex items-center gap-3 mb-5">
-      ${renderCoinIcon(coin, 'w-12 h-12')}
-      <div class="flex-1">
-        <div class="font-bold text-[18px]">${coin.name}</div>
-        <div class="text-[12px] text-gray-500">${coin.vol || coin.sym}</div>
-      </div>
-      <button onclick="closeModal()" class="p-2 bg-[#131722] rounded-full btn-press">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-      </button>
-    </div>
-    <div class="chart-container bg-[#131722] rounded-2xl p-5 mb-4">
-      <svg width="100%" height="100" viewBox="0 0 200 100" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="${color}" stop-opacity="0.3"/>
-            <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
-          </linearGradient>
-        </defs>
-        <path d="${path} L200 100 L0 100 Z" fill="url(#grad)"/>
-        <path d="${path}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
-          style="stroke-dasharray: 400; stroke-dashoffset: 400; animation: drawLine 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;"/>
-      </svg>
-      <div class="flex justify-between items-center mt-3">
-        <div>
-          <div class="text-[24px] font-bold">${coin.price}</div>
-          <div class="text-[13px] ${coin.up ? 'text-[#10B981]' : 'text-[#EF4444]'}">${coin.change}</div>
-        </div>
-        <div class="text-right">
-          <div class="text-[11px] text-gray-500">Объём 24ч</div>
-          <div class="font-semibold text-[13px]">${(coin.vol || '').replace('Об. ','') || '$2.5B'}</div>
-        </div>
-      </div>
-    </div>
-    <div class="grid grid-cols-3 gap-2 mb-4">
-      <div class="bg-[#131722] p-3 rounded-xl text-center stagger-item" style="animation-delay: 0.1s">
-        <div class="text-[10px] text-gray-500 mb-1">Плечо</div>
-        <div class="font-bold text-[14px]">${coin.lev || '20x'}</div>
-      </div>
-      <div class="bg-[#131722] p-3 rounded-xl text-center stagger-item" style="animation-delay: 0.15s">
-        <div class="text-[10px] text-gray-500 mb-1">Макс</div>
-        <div class="font-bold text-[14px]">50x</div>
-      </div>
-      <div class="bg-[#131722] p-3 rounded-xl text-center stagger-item" style="animation-delay: 0.2s">
-        <div class="text-[10px] text-gray-500 mb-1">Комиссия</div>
-        <div class="font-bold text-[14px]">0.05%</div>
-      </div>
-    </div>
-    <div class="flex gap-3">
-      <button onclick="closeModal(); openOrder('long')" class="btn-gradient-green flex-1 py-3 rounded-xl font-semibold btn-press">Лонг ↗</button>
-      <button onclick="closeModal(); openOrder('short')" class="btn-gradient-red flex-1 py-3 rounded-xl font-semibold btn-press">Шорт ↘</button>
-    </div>
-  `;
-  
-  setTimeout(() => {
-    modalBackdrop.classList.add('show');
-  }, 60);
-}
+  state.balance -= amount;
+  state.transactions.unshift({
+    id: Date.now(),
+    name: 'Перевод ' + bankName + (comment ? ' · ' + comment : ''),
+    date: 'Только что',
+    amount: -amount,
+    icon: 'send',
+    category: 'Другое',
+    meta: { phone: phoneMask, bank: bankName },
+  });
+  saveState();
+  renderHome();
 
-// ============================================================
-// ОРДЕР
-// ============================================================
-function openOrder(side) {
-  const isLong = side === 'long';
-  modalContent.innerHTML = `
-    <h2 class="text-[18px] font-bold mb-4 text-center">${isLong ? 'Лонг' : 'Шорт'} позиция</h2>
-    <div class="bg-[#131722] rounded-2xl p-4 mb-3">
-      <div class="text-[12px] text-gray-400 mb-1">Размер позиции (USDT)</div>
-      <input type="text" id="order-size" placeholder="0.00" class="input-field bg-transparent text-[28px] font-bold w-full outline-none placeholder-gray-600" oninput="calcOrder()">
-      <div class="flex gap-2 mt-3">
-        ${['25%', '50%', '75%', '100%'].map(p => `<button onclick="setOrderPct('${p}')" class="flex-1 py-1.5 bg-[#1E232F] rounded-lg text-[12px] btn-press">${p}</button>`).join('')}
-      </div>
-    </div>
-    <div class="bg-[#131722] rounded-2xl p-4 mb-3 space-y-2">
-      <div class="flex justify-between"><span class="text-[13px] text-gray-400">Плечо</span><span class="font-semibold text-[13px]">10x</span></div>
-      <div class="flex justify-between"><span class="text-[13px] text-gray-400">Цена входа</span><span class="font-semibold text-[13px]">Market</span></div>
-      <div class="flex justify-between"><span class="text-[13px] text-gray-400">Ликвидация</span><span class="font-semibold text-[13px] text-[#EF4444]" id="order-liq">—</span></div>
-    </div>
-    <div class="flex gap-3">
-      <button onclick="closeModal()" class="flex-1 bg-[#2A303C] py-4 rounded-2xl font-semibold btn-press">Отмена</button>
-      <button onclick="showToast('${isLong ? 'Лонг' : 'Шорт'} позиция открыта'); closeModal()" class="${isLong ? 'btn-gradient-green' : 'btn-gradient-red'} flex-1 py-4 rounded-2xl font-semibold btn-press">${isLong ? 'Открыть Лонг' : 'Открыть Шорт'}</button>
-    </div>
-  `;
-  setTimeout(() => {
-    modalBackdrop.classList.add('show');
-  }, 60);
-}
-function setOrderPct(p) {
-  const bal = 8396;
-  document.getElementById('order-size').value = (bal * parseInt(p) / 100).toFixed(2);
-  calcOrder();
-}
-function calcOrder() {
-  const size = parseFloat(document.getElementById('order-size').value) || 0;
-  const liq = document.getElementById('order-liq');
-  liq.textContent = size > 0 ? (size * 0.9).toFixed(2) + ' USDT' : '—';
-}
+  // сброс формы
+  phoneInput.value = '';
+  amountInput.value = '';
+  commentInput.value = '';
+  bankSearch.value = '';
+  document.getElementById('bankSearchResults').innerHTML = '';
+  phoneErr.textContent = '';
+  amountErr.textContent = '';
+  bankErr.textContent = '';
+  selectedBank = null;
+  document.querySelectorAll('.bank-item').forEach(el => el.classList.remove('selected'));
 
-// ============================================================
-// DAPP
-// ============================================================
-function openDApp(name, cat, color) {
-  const dapp = DAPPS.find(d => d.name === name);
-  modalContent.innerHTML = `
-    <div class="flex items-center gap-3 mb-5">
-      <div class="coin-logo-wrap w-12 h-12 rounded-full flex items-center justify-center shadow-lg">
-        ${dapp ? `<img src="${dapp.img}" class="coin-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">` : ''}
-        <div class="logo-fallback hidden absolute inset-0 items-center justify-center font-bold text-[16px]">${name[0]}</div>
-      </div>
-      <div><div class="font-bold text-[18px]">${name}</div><div class="text-[12px] text-gray-500">${cat}</div></div>
-    </div>
-    <div class="grid grid-cols-2 gap-2 mb-4">
-      <div class="bg-[#131722] p-3 rounded-xl stagger-item" style="animation-delay: 0.1s"><div class="text-[10px] text-gray-500">TVL</div><div class="font-bold text-[14px]">$2.4B</div></div>
-      <div class="bg-[#131722] p-3 rounded-xl stagger-item" style="animation-delay: 0.15s"><div class="text-[10px] text-gray-500">Пользователи</div><div class="font-bold text-[14px]">1.2M</div></div>
-    </div>
-    <button onclick="showToast('Открытие ${name}...'); closeModal()" class="btn-gradient-blue w-full py-4 rounded-2xl font-semibold btn-press">Открыть DApp</button>
-  `;
-  setTimeout(() => {
-    modalBackdrop.classList.add('show');
-  }, 60);
-}
+  showToast(`Переведено ${fmtMoney(amount)}`);
+  goTo('home', 'backward');
+});
 
-// ============================================================
-// TOAST
-// ============================================================
+/* ========== TOAST ========== */
 let toastTimer;
-function showToast(msg) {
-  const toast = document.getElementById('toast');
-  toast.textContent = msg;
-  toast.classList.add('show');
+function showToast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast' + (type === 'error' ? ' error' : '');
+  requestAnimationFrame(() => el.classList.add('show'));
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
 }
 
-// ============================================================
-// SWAP
-// ============================================================
-const RATES = { 'BTC-ETH': 31.08, 'ETH-BTC': 1 / 31.08 };
-let currentFrom = 'BTC';
-let currentTo = 'ETH';
-const CURRENCY_META = {
-  'BTC': { balance: '0.054 BTC', img: LOGOS.BTC, txt: '₿' },
-  'ETH': { balance: '0.00 ETH', img: LOGOS.ETH, txt: 'Ξ' },
-};
+/* ========== ГРАФИК ========== */
+let chartInstance = null;
 
-function updateSwapIcons() {
-  const fromMeta = CURRENCY_META[currentFrom];
-  const toMeta = CURRENCY_META[currentTo];
-  
-  const iconFrom = document.getElementById('icon-from');
-  iconFrom.innerHTML = `<img src="${fromMeta.img}" class="coin-logo" style="width:80%;height:80%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"><div class="logo-fallback hidden absolute inset-0 items-center justify-center font-bold text-[11px]">${fromMeta.txt}</div>`;
-  document.getElementById('symbol-from').textContent = currentFrom;
-  document.getElementById('balance-from').textContent = `Balance: ${fromMeta.balance}`;
-  
-  const iconTo = document.getElementById('icon-to');
-  iconTo.innerHTML = `<img src="${toMeta.img}" class="coin-logo" style="width:80%;height:80%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"><div class="logo-fallback hidden absolute inset-0 items-center justify-center font-bold text-[11px]">${toMeta.txt}</div>`;
-  document.getElementById('symbol-to').textContent = currentTo;
-  document.getElementById('balance-to').textContent = `Balance: ${toMeta.balance}`;
-  
-  document.getElementById('rate-text').textContent = `1 ${currentFrom} ≈ ${RATES[`${currentFrom}-${currentTo}`].toFixed(4)} ${currentTo}`;
-}
+function renderChart() {
+  const byCat = {};
+  state.transactions.forEach(tx => {
+    if (tx.amount < 0) {
+      byCat[tx.category] = (byCat[tx.category] || 0) + Math.abs(tx.amount);
+    }
+  });
+  const labels = Object.keys(byCat);
+  const values = labels.map(l => byCat[l]);
+  const colors = labels.map(l => CATEGORY_COLORS[l] || '#a29bfe');
 
-const inputFrom = document.getElementById('input-from');
-const inputTo = document.getElementById('input-to');
-const swapBtn = document.getElementById('swap-btn');
+  const isDark = state.theme === 'dark';
+  const borderColor = isDark ? '#1e1e2e' : '#ffffff';
 
-function calculate() {
-  const value = parseFloat(inputFrom.value.replace(',', '.')) || 0;
-  const rate = RATES[`${currentFrom}-${currentTo}`];
-  if (value > 0) {
-    inputTo.value = (value * rate).toFixed(6);
-    swapBtn.disabled = false;
-    swapBtn.textContent = `Review Swap · ${value} ${currentFrom} → ${inputTo.value} ${currentTo}`;
-  } else {
-    inputTo.value = '';
-    swapBtn.disabled = true;
-    swapBtn.textContent = 'Review Swap';
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+
+  if (!labels.length) {
+    document.getElementById('chartLegend').innerHTML =
+      '<div style="color:var(--text-muted); font-size:13px; padding:8px 0; text-align:center; width:100%;">Нет данных для отображения</div>';
+    // пустой canvas — просто рисуем прозрачный фон
+    const ctx = document.getElementById('expenseChart').getContext('2d');
+    chartInstance = new Chart(ctx, { type: 'doughnut', data: { labels: ['Нет данных'], datasets: [{ data: [1], backgroundColor: ['#e5e5ee'], borderWidth: 0 }] },
+      options: { responsive: true, cutout: '62%', plugins: { legend: { display: false }, tooltip: { enabled: false } } } });
+    return;
   }
-}
-function flipSwap() {
-  [currentFrom, currentTo] = [currentTo, currentFrom];
-  updateSwapIcons();
-  inputFrom.value = '';
-  inputTo.value = '';
-  calculate();
-  showToast('Валюты поменяны местами');
-}
-inputFrom.addEventListener('input', calculate);
 
-// ============================================================
-// ИНИЦИАЛИЗАЦИЯ
-// ============================================================
-renderAllMarkets();
-renderWalletTokens();
-renderDapps();
-updateSwapIcons();
+  const ctx = document.getElementById('expenseChart').getContext('2d');
+  chartInstance = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor, borderWidth: 3 }] },
+    options: {
+      responsive: true, maintainAspectRatio: true, cutout: '62%',
+      animation: { duration: 700, easing: 'easeOutCubic' },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => ` ${c.label}: ${fmtMoney(c.parsed)}` } }
+      }
+    }
+  });
+
+  document.getElementById('chartLegend').innerHTML = labels.map((l, i) =>
+    `<div class="legend-item"><span class="legend-dot" style="background:${colors[i]}"></span>${escapeHtml(l)} · ${fmtMoney(values[i])}</div>`
+  ).join('');
+}
+
+/* ========== НАСТРОЙКИ ========== */
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', state.theme);
+  const sw = document.getElementById('themeSwitch');
+  if (sw) sw.classList.toggle('on', state.theme === 'dark');
+}
+function toggleTheme() {
+  state.theme = state.theme === 'dark' ? 'light' : 'dark';
+  saveState();
+  applyTheme();
+  if (document.getElementById('screen-chart').classList.contains('active')) renderChart();
+}
+function updateSettings() {
+  document.getElementById('balanceSetting').textContent = fmtMoney(state.balance);
+  const bytes = new Blob([JSON.stringify(state)]).size;
+  document.getElementById('storageInfo').textContent = `Записей: ${state.transactions.length} · ${(bytes / 1024).toFixed(1)} КБ`;
+  applyTheme();
+}
+
+/* ========== ЭКСПОРТ ========== */
+function exportData() {
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'mybank-export-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Файл сохранён');
+}
+
+/* ========== СБРОС ========== */
+function resetData() {
+  if (!confirm('Сбросить все данные?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = JSON.parse(JSON.stringify(DEFAULT_DATA));
+  saveState();
+  applyTheme();
+  renderHome();
+  updateSettings();
+  selectedBank = null;
+  showToast('Данные сброшены');
+}
+
+/* ========== ИНИЦИАЛИЗАЦИЯ ========== */
+applyTheme();
+renderHome();
+updateSettings();
 </script>
 </body>
 </html>
