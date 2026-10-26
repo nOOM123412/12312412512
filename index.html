@@ -236,33 +236,24 @@
   .back-btn svg { stroke: var(--text-main); }
   .header-title { font-size: 24px; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
 
-  /* Аналитика (серая плашка с графиком) */
+  /* Аналитика (серая плашка) */
   .analytics-banner {
     margin: 20px;
     background: var(--bg-card);
     border-radius: 24px;
-    padding: 24px;
+    padding: 20px;
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
     border: 1px solid var(--border);
     backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-    cursor: pointer;
     transition: transform 0.15s;
   }
   .analytics-banner:active { transform: scale(0.98); }
-  .analytics-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
   .analytics-title { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; color: var(--text-main); }
   .analytics-banner svg { stroke: var(--text-muted); }
-  
-  /* Скрытый график, который раскрывается */
-  .chart-container-hidden {
-    display: none;
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border);
-  }
-  .chart-container-hidden.open { display: block; }
 
   /* ================= ПЕРЕВОД ================= */
   .form-container { padding: 24px 20px; display: flex; flex-direction: column; gap: 20px; }
@@ -635,24 +626,32 @@
       <div class="header-title">История</div>
     </div>
 
-    <!-- Серая плашка (Аналитика) с графиком -->
-    <div class="analytics-banner" onclick="toggleChart(this)">
-      <div class="analytics-header">
-        <div class="analytics-title">Аналитика трат</div>
-        <svg id="analyticsArrow" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(90deg); transition: transform 0.3s;"><polyline points="9 18 15 12 9 6"/></svg>
-      </div>
-      <div class="analytics-sub" id="analyticsSummary">За текущий месяц</div>
-      
-      <!-- Скрытый график -->
-      <div class="chart-container-hidden" id="chartContainer">
-        <canvas id="expenseChart"></canvas>
-        <div id="chartLegend" style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);"></div>
-      </div>
+    <!-- Серая плашка (Аналитика) -->
+    <div class="analytics-banner" onclick="goTo('analytics')">
+      <div class="analytics-title">Аналитика трат</div>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
     </div>
 
     <!-- История всех транзакций -->
     <div style="padding: 0 20px;">
       <div id="fullTxList"></div>
+    </div>
+  </div>
+
+  <!-- ================= ЭКРАН АНАЛИТИКИ (ГРАФИК) ================= -->
+  <div class="screen" id="screen-analytics">
+    <div class="header-compact">
+      <div class="back-btn" onclick="goTo('chart')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      </div>
+      <div class="header-title">Аналитика</div>
+    </div>
+    
+    <div style="padding: 20px;">
+      <div style="background: var(--bg-card); border-radius: 24px; padding: 24px; border: 1px solid var(--border); backdrop-filter: blur(20px);">
+        <canvas id="expenseChart"></canvas>
+        <div id="chartLegend" style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);"></div>
+      </div>
     </div>
   </div>
 
@@ -796,13 +795,13 @@ const ALL_BANKS = [
 
 let selectedBank = null;
 
-const USERS_KEY = 'mybank_users_v11';
+const USERS_KEY = 'mybank_users_v12';
 const DEFAULT_USERS = {
   '+79998887766': { name: 'Владимир С.', balance: 124580 }
 };
-const MY_PHONE_KEY = 'mybank_my_phone_v11';
+const MY_PHONE_KEY = 'mybank_my_phone_v12';
 const DEFAULT_MY_PHONE = '+79998887766';
-const STORAGE_KEY = 'mybank_data_v13';
+const STORAGE_KEY = 'mybank_data_v14';
 
 function loadUsers() {
   try { const raw = localStorage.getItem(USERS_KEY); if (raw) return JSON.parse(raw); } catch (e) {}
@@ -824,7 +823,7 @@ function loadState() {
 function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 let state = loadState();
 
-const TAB_ORDER = ['home', 'transfer', 'chart', 'settings'];
+const TAB_ORDER = ['home', 'transfer', 'chart', 'settings', 'analytics'];
 let currentTab = 'home';
 let isAnimating = false;
 
@@ -855,7 +854,8 @@ function goTo(tab, direction) {
   
   currentTab = tab;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
-  if (tab === 'chart') { renderChart(); renderFullHistory(); }
+  if (tab === 'chart') { renderFullHistory(); }
+  if (tab === 'analytics') { renderChart(); }
   if (tab === 'settings') updateSettings();
   if (tab === 'home') renderHome();
 }
@@ -904,7 +904,6 @@ function renderHome() {
   const monthName = new Date().toLocaleDateString('ru-RU', { month: 'long' });
   document.getElementById('widgetMonthSub').innerHTML = `Трат в ${monthName}<br><b id="monthExpenses">${fmtMoney(monthExp)}</b>`;
   
-  // Последние переводы (на главной)
   const recent = state.transactions
     .filter(t => t.from === myPhone || t.to === myPhone)
     .slice(0, 5);
@@ -936,7 +935,6 @@ function renderHome() {
   }
 }
 
-/* РЕНДЕР ПОЛНОЙ ИСТОРИИ (на экране истории) */
 function renderFullHistory() {
   const myTx = state.transactions.filter(t => t.from === myPhone || t.to === myPhone);
   const list = document.getElementById('fullTxList');
@@ -968,20 +966,9 @@ function renderFullHistory() {
   }).join('');
 }
 
-/* РАСКРЫТИЕ/СКРЫТИЕ ГРАФИКА В ПЛАШКЕ */
-function toggleChart(el) {
-  const chartContainer = document.getElementById('chartContainer');
-  const arrow = document.getElementById('analyticsArrow');
-  const isOpen = chartContainer.classList.contains('open');
-  
-  if (isOpen) {
-    chartContainer.classList.remove('open');
-    arrow.style.transform = 'rotate(90deg)';
-  } else {
-    chartContainer.classList.add('open');
-    arrow.style.transform = 'rotate(-90deg)';
-    setTimeout(() => renderChart(), 50); // Перерисовываем после открытия
-  }
+/* НОВАЯ ЛОГИКА: АНАЛИТИКА В ОТДЕЛЬНОМ ЭКРАНЕ */
+function renderAnalytics() {
+  goTo('analytics');
 }
 
 function openNameModal() {
@@ -1232,10 +1219,6 @@ function renderChart() {
     }
   });
   document.getElementById('chartLegend').innerHTML = labels.map((l, i) => `<div style="display:flex; align-items:center; gap:8px; font-size:14px; font-weight: 500; color:var(--text-secondary);"><span style="width:12px; height:12px; border-radius:4px; background:${colors[i]}"></span>${escapeHtml(l)} · ${fmtMoney(values[i])}</div>`).join('');
-  
-  // Обновляем сводку в плашке
-  const total = values.reduce((a, b) => a + b, 0);
-  document.getElementById('analyticsSummary').textContent = `Всего: ${fmtMoney(total)} за месяц`;
 }
 
 function applyTheme() {
@@ -1254,7 +1237,7 @@ function applyTheme() {
 function toggleTheme() {
   state.theme = state.theme === 'dark' ? 'light' : 'dark';
   saveState(); applyTheme();
-  if (document.getElementById('screen-chart').classList.contains('active')) renderChart();
+  if (document.getElementById('screen-analytics').classList.contains('active')) renderChart();
 }
 function updateSettings() {
   const me = users[myPhone];
